@@ -60,15 +60,20 @@ function xmldb_local_recertify_install(): bool {
     // Check if local_recompletion was installed by looking for its first table.
     $recompletiontable = new \xmldb_table('local_recompletion_cc');
     if ($dbman->table_exists($recompletiontable)) {
-        migrate_table_data($DB, $dbman, $tablemapping);
-        migrate_course_config($DB, $dbman);
-        migrate_plugin_config($DB);
+        mtrace('local_recertify: detected local_recompletion, migrating data...');
+        $migratedrows = migrate_table_data($DB, $dbman, $tablemapping);
+        $migratedconfig = migrate_course_config($DB, $dbman);
+        $migratedsettings = migrate_plugin_config($DB);
+        mtrace("local_recertify: migrated {$migratedrows} archive rows, " .
+            "{$migratedconfig} course config entries and {$migratedsettings} plugin settings from local_recompletion.");
     }
 
     // Check if local_recompletionextension was installed.
     $extensiontable = new \xmldb_table('local_recompextend_reset_log');
     if ($dbman->table_exists($extensiontable)) {
-        migrate_reset_log_data($DB);
+        mtrace('local_recertify: detected local_recompletionextension, migrating reset log...');
+        $migratedlog = migrate_reset_log_data($DB);
+        mtrace("local_recertify: migrated {$migratedlog} reset log entries from local_recompletionextension.");
     }
 
     return true;
@@ -80,9 +85,11 @@ function xmldb_local_recertify_install(): bool {
  * @param \moodle_database $db
  * @param \database_manager $dbman
  * @param array $tablemapping
- * @return void
+ * @return int Total rows copied across all tables.
  */
-function migrate_table_data(\moodle_database $db, \database_manager $dbman, array $tablemapping): void {
+function migrate_table_data(\moodle_database $db, \database_manager $dbman, array $tablemapping): int {
+    $total = 0;
+
     foreach ($tablemapping as $oldtable => $newtable) {
         $source = new \xmldb_table($oldtable);
         if (!$dbman->table_exists($source)) {
@@ -98,6 +105,7 @@ function migrate_table_data(\moodle_database $db, \database_manager $dbman, arra
         $records = $db->get_recordset($oldtable);
         $batch = [];
         $batchsize = 1000;
+        $inserted = 0;
 
         foreach ($records as $record) {
             // Remove the id so the new table auto-increments.
@@ -106,6 +114,7 @@ function migrate_table_data(\moodle_database $db, \database_manager $dbman, arra
 
             if (count($batch) >= $batchsize) {
                 $db->insert_records($newtable, $batch);
+                $inserted += count($batch);
                 $batch = [];
             }
         }
@@ -113,10 +122,14 @@ function migrate_table_data(\moodle_database $db, \database_manager $dbman, arra
         // Insert remaining records.
         if (!empty($batch)) {
             $db->insert_records($newtable, $batch);
+            $inserted += count($batch);
         }
 
         $records->close();
+        $total += $inserted;
     }
+
+    return $total;
 }
 
 /**
@@ -126,17 +139,18 @@ function migrate_table_data(\moodle_database $db, \database_manager $dbman, arra
  *
  * @param \moodle_database $db
  * @param \database_manager $dbman
- * @return void
+ * @return int Number of config rows copied.
  */
-function migrate_course_config(\moodle_database $db, \database_manager $dbman): void {
+function migrate_course_config(\moodle_database $db, \database_manager $dbman): int {
     $source = new \xmldb_table('local_recompletion_config');
     if (!$dbman->table_exists($source)) {
-        return;
+        return 0;
     }
 
     $records = $db->get_recordset('local_recompletion_config');
     $batch = [];
     $batchsize = 1000;
+    $inserted = 0;
 
     foreach ($records as $record) {
         unset($record->id);
@@ -146,15 +160,19 @@ function migrate_course_config(\moodle_database $db, \database_manager $dbman): 
 
         if (count($batch) >= $batchsize) {
             $db->insert_records('local_recertify_config', $batch);
+            $inserted += count($batch);
             $batch = [];
         }
     }
 
     if (!empty($batch)) {
         $db->insert_records('local_recertify_config', $batch);
+        $inserted += count($batch);
     }
 
     $records->close();
+
+    return $inserted;
 }
 
 /**
@@ -163,10 +181,11 @@ function migrate_course_config(\moodle_database $db, \database_manager $dbman): 
  * This copies settings from the mdl_config_plugins table.
  *
  * @param \moodle_database $db
- * @return void
+ * @return int Number of settings copied.
  */
-function migrate_plugin_config(\moodle_database $db): void {
+function migrate_plugin_config(\moodle_database $db): int {
     $oldconfig = $db->get_records('config_plugins', ['plugin' => 'local_recompletion']);
+    $copied = 0;
 
     foreach ($oldconfig as $setting) {
         // Only migrate if the setting does not already exist in the new plugin.
@@ -177,25 +196,29 @@ function migrate_plugin_config(\moodle_database $db): void {
 
         if (!$exists) {
             set_config($setting->name, $setting->value, 'local_recertify');
+            $copied++;
         }
     }
+
+    return $copied;
 }
 
 /**
  * Migrate reset log data from local_recompletionextension to local_recertify.
  *
  * @param \moodle_database $db
- * @return void
+ * @return int Number of reset log entries copied.
  */
-function migrate_reset_log_data(\moodle_database $db): void {
+function migrate_reset_log_data(\moodle_database $db): int {
     $count = $db->count_records('local_recompextend_reset_log');
     if ($count == 0) {
-        return;
+        return 0;
     }
 
     $records = $db->get_recordset('local_recompextend_reset_log');
     $batch = [];
     $batchsize = 1000;
+    $inserted = 0;
 
     foreach ($records as $record) {
         unset($record->id);
@@ -203,13 +226,17 @@ function migrate_reset_log_data(\moodle_database $db): void {
 
         if (count($batch) >= $batchsize) {
             $db->insert_records('local_recertify_reset_log', $batch);
+            $inserted += count($batch);
             $batch = [];
         }
     }
 
     if (!empty($batch)) {
         $db->insert_records('local_recertify_reset_log', $batch);
+        $inserted += count($batch);
     }
 
     $records->close();
+
+    return $inserted;
 }

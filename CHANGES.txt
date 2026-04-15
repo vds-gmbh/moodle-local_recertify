@@ -1,0 +1,9 @@
+Release notes
+-------------
+
+Date          Version   Comment
+2026/04/15    1.0.0     Initial release for Moodle 4.5. Based on local_recompletion.
+                        Install hook auto-migrates archive tables, course config,
+                        plugin settings and the reset log from local_recompletion
+                        and local_recompletionextension if either predecessor is
+                        present.
