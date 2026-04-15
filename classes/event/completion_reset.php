@@ -18,6 +18,7 @@
  * completion_reset event.
  *
  * @package     local_recertify
+ * @copyright  Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,6 +31,7 @@ namespace local_recertify\event;
  * @property-read int $relateduserid user who must recomplete the course
  *
  * @package    local_recertify
+ * @copyright  Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *

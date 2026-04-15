@@ -17,6 +17,7 @@
 /**
  * Manually edit completion date for a course.
  *
+ * @copyright  2020 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @package local_recertify

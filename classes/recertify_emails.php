@@ -18,6 +18,7 @@
  * Email utility for recertify.
  *
  * @package    local_recertify
+ * @copyright  2021 Philipp Steingrebe
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,6 +31,7 @@ defined('MOODLE_INTERNAL') || die();
  * Defines the course completion settings form.
  *
  * @package    local_recertify
+ * @copyright  2021 Philipp Steingrebe
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

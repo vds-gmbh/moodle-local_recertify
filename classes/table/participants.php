@@ -18,6 +18,7 @@
  * Contains participants class copied from core partcipants_table, copyright 2017 Mark Nelson <markn@moodle.com>
  *
  * @package    local_recertify
+ * @copyright  2020 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -38,6 +39,7 @@ require_once($CFG->dirroot . '/user/lib.php');
  * Class for the displaying the participants table.
  *
  * @package    local_recertify
+ * @copyright  2020 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

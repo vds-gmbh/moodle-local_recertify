@@ -18,6 +18,7 @@
  * Used to check for incompleted users and notify their supervisor.
  *
  * @package    local_recertify
+ * @copyright  2021 Philipp Steingrebe
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,6 +31,7 @@ defined('MOODLE_INTERNAL') || die();
  * Check for incompleted users and notify their supervisor.
  *
  * @package    local_recertify
+ * @copyright  2021 Philipp Steingrebe
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

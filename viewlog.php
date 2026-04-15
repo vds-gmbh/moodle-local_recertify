@@ -18,6 +18,7 @@
  * View the debug log
  *
  * @package   local_recertify
+ * @copyright  2023 Synergy Learning
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

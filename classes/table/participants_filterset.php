@@ -18,6 +18,7 @@
  * Participants table filterset.
  *
  * @package    local_recertify
+ * @copyright  2021 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -34,6 +35,7 @@ use core_table\local\filter\string_filter;
  * Participants table filterset.
  *
  * @package    local_recertify
+ * @copyright  2021 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

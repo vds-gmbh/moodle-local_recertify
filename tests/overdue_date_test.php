@@ -29,6 +29,7 @@ require_once("$CFG->dirroot/enrol/locallib.php");
  * Class dialogue_test.
  *
  * @package    local_recertify
+ * @copyright  2024 Lewis Robinson
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

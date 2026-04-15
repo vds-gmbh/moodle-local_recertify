@@ -18,6 +18,7 @@
  * Edit course completion settings - the form definition.
  *
  * @package     local_recertify
+ * @copyright  2020 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -25,6 +26,7 @@
 /**
  * Defines the course completion settings form.
  *
+ * @copyright  2020 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

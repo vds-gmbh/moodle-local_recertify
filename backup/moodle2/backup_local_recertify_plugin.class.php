@@ -18,6 +18,7 @@
  * Defines backup_local_recertify class.
  *
  * @package     local_recertify
+ * @copyright  2018 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,6 +27,7 @@
  * Backup plugin class.
  *
  * @package    local_recertify
+ * @copyright  2018 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

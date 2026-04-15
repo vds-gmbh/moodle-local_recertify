@@ -18,6 +18,7 @@
  * Manually reset completion date for a course for a selected amount of users.
  *
  * @package     local_recertify
+ * @copyright  2023 Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

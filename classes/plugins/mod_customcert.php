@@ -18,6 +18,8 @@
  * Custom certificate handler event.
  *
  * @package     local_recertify
+ * @copyright  2023 Alexander Bias, lern.link GmbH <alexander.bias@lernlink.de>
+ * @copyright  based on code by Dan Marsden, Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,6 +32,8 @@ use lang_string;
  * Custom certificate handler event.
  *
  * @package    local_recertify
+ * @copyright  2023 Alexander Bias, lern.link GmbH <alexander.bias@lernlink.de>
+ * @copyright  based on code by Dan Marsden, Catalyst IT
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *

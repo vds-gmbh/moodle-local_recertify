@@ -18,6 +18,7 @@
  * Plugin capabilities
  *
  * @package    local_recertify
+ * @copyright  2017 Dan Marsden
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
