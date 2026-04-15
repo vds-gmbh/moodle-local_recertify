@@ -30,7 +30,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_local_recertify_plugin extends backup_local_plugin {
-
     /**
      * Returns the format information to attach to course element.
      */
@@ -42,27 +41,27 @@ class backup_local_recertify_plugin extends backup_local_plugin {
         $plugin = $this->get_plugin_element();
         $recertify = new backup_nested_element($this->get_recommended_name());
 
-        $recertifydata = new backup_nested_element('recertify_config', null, array(
-            'course', 'name', 'value'));
+        $recertifydata = new backup_nested_element('recertify_config', null, [
+            'course', 'name', 'value']);
 
         // Handle Historical course completions.
         $cc = new backup_nested_element('course_completion');
 
-        $coursecompletions = new backup_nested_element('coursecompletion', array('id'), array(
-            'userid', 'course', 'timeenrolled', 'timestarted', 'timecompleted', 'reaggregate'
-        ));
+        $coursecompletions = new backup_nested_element('coursecompletion', ['id'], [
+            'userid', 'course', 'timeenrolled', 'timestarted', 'timecompleted', 'reaggregate',
+        ]);
 
         // Now Handle historical course_completion_crit_compl table.
         $criteriacompletions = new backup_nested_element('course_completion_crit_completions');
 
-        $criteriacomplete = new backup_nested_element('course_completion_crit_compl', array('id'), array(
-            'criteriaid', 'userid', 'gradefinal', 'unenrolled', 'timecompleted'
-        ));
+        $criteriacomplete = new backup_nested_element('course_completion_crit_compl', ['id'], [
+            'criteriaid', 'userid', 'gradefinal', 'unenrolled', 'timecompleted',
+        ]);
 
         $completions = new backup_nested_element('completions');
 
-        $completion = new backup_nested_element('completion', array('id'), array(
-            'userid', 'completionstate', 'viewed', 'timemodified', 'coursemoduleid', 'course'));
+        $completion = new backup_nested_element('completion', ['id'], [
+            'userid', 'completionstate', 'viewed', 'timemodified', 'coursemoduleid', 'course']);
 
         $plugin->add_child($recertify);
         $recertify->add_child($recertifydata);
@@ -74,14 +73,14 @@ class backup_local_recertify_plugin extends backup_local_plugin {
         $completions->add_child($completion);
 
         // Set source to populate the data.
-        $recertifydata->set_source_table('local_recertify_config', array(
-            'course' => backup::VAR_PARENTID));
+        $recertifydata->set_source_table('local_recertify_config', [
+            'course' => backup::VAR_PARENTID]);
 
         // Only include the archive info if usercompletion is also being saved to backup.
         if ($usercompletion) {
-            $coursecompletions->set_source_table('local_recertify_cc', array('course' => backup::VAR_COURSEID));
-            $criteriacomplete->set_source_table('local_recertify_cc_cc', array('course' => backup::VAR_COURSEID));
-            $completion->set_source_table('local_recertify_cmc', array('course' => backup::VAR_COURSEID));
+            $coursecompletions->set_source_table('local_recertify_cc', ['course' => backup::VAR_COURSEID]);
+            $criteriacomplete->set_source_table('local_recertify_cc_cc', ['course' => backup::VAR_COURSEID]);
+            $completion->set_source_table('local_recertify_cmc', ['course' => backup::VAR_COURSEID]);
         }
         $coursecompletions->annotate_ids('user', 'userid');
         $criteriacomplete->annotate_ids('user', 'userid');
@@ -92,22 +91,22 @@ class backup_local_recertify_plugin extends backup_local_plugin {
         // Now deal with Quiz Archive tables.
         $quizgrades = new backup_nested_element('quizgrades');
 
-        $grade = new backup_nested_element('grade', array('id'), array(
-            'userid', 'quiz', 'gradeval', 'timemodified', 'course'));
+        $grade = new backup_nested_element('grade', ['id'], [
+            'userid', 'quiz', 'gradeval', 'timemodified', 'course']);
 
         $quizattempts = new backup_nested_element('quizattempts');
 
-        $attempt = new backup_nested_element('attempt', array('id'), array(
+        $attempt = new backup_nested_element('attempt', ['id'], [
             'userid', 'attempt', 'uniqueid', 'layout', 'currentpage', 'preview', 'quiz',
-            'state', 'timestart', 'timefinish', 'timemodified', 'timemodifiedoffline', 'timecheckstate', 'sumgrades', 'course'));
+            'state', 'timestart', 'timefinish', 'timemodified', 'timemodifiedoffline', 'timecheckstate', 'sumgrades', 'course']);
 
         $recertify->add_child($quizgrades);
         $quizgrades->add_child($grade);
         $recertify->add_child($quizattempts);
         $quizattempts->add_child($attempt);
         if ($usercompletion) {
-            $attempt->set_source_table('local_recertify_qa', array('course' => backup::VAR_COURSEID));
-            $grade->set_source_table('local_recertify_qg', array('course' => backup::VAR_COURSEID));
+            $attempt->set_source_table('local_recertify_qa', ['course' => backup::VAR_COURSEID]);
+            $grade->set_source_table('local_recertify_qg', ['course' => backup::VAR_COURSEID]);
         }
 
         $attempt->annotate_ids('user', 'userid');
@@ -116,33 +115,32 @@ class backup_local_recertify_plugin extends backup_local_plugin {
         // Now deal with SCORM archive tables.
         $scotracks = new backup_nested_element('scormtracks');
 
-        $scotrack = new backup_nested_element('sco_track', array('id'), array(
+        $scotrack = new backup_nested_element('sco_track', ['id'], [
             'userid', 'attempt', 'element', 'value',
-            'timemodified', 'course', 'scormid', 'scoid'));
+            'timemodified', 'course', 'scormid', 'scoid']);
 
         $recertify->add_child($scotracks);
         $scotracks->add_child($scotrack);
 
         if ($usercompletion) {
-            $scotrack->set_source_table('local_recertify_sst', array('course' => backup::VAR_COURSEID));
+            $scotrack->set_source_table('local_recertify_sst', ['course' => backup::VAR_COURSEID]);
         }
         $scotrack->annotate_ids('user', 'userid');
 
         // Now deal with choice archive tables.
         $choiceanswers = new backup_nested_element('choiceanswers');
 
-        $choiceanswer = new backup_nested_element('choiceanswer', array('id'), array(
-            'choiceid', 'userid', 'optionid', 'timemodified', 'choice'));
+        $choiceanswer = new backup_nested_element('choiceanswer', ['id'], [
+            'choiceid', 'userid', 'optionid', 'timemodified', 'choice']);
 
         $recertify->add_child($choiceanswers);
         $choiceanswers->add_child($choiceanswer);
 
         if ($usercompletion) {
-            $choiceanswer->set_source_table('local_recertify_cha', array('course' => backup::VAR_COURSEID));
+            $choiceanswer->set_source_table('local_recertify_cha', ['course' => backup::VAR_COURSEID]);
         }
         $choiceanswer->annotate_ids('user', 'userid');
 
         return $plugin;
     }
-
 }

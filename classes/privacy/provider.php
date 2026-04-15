@@ -35,25 +35,21 @@ use stdClass;
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements
-    \core_privacy\local\request\plugin\provider,
-    \core_privacy\local\request\core_userlist_provider,
-    \core_privacy\local\metadata\provider {
-
+class provider implements \core_privacy\local\metadata\provider, \core_privacy\local\request\core_userlist_provider, \core_privacy\local\request\plugin\provider {
     /**
      * Returns meta data about this system.
      *
      * @param collection $collection The initialised collection to add items to.
      * @return collection A listing of user data stored through this system.
      */
-    public static function get_metadata(collection $collection) : collection {
+    public static function get_metadata(collection $collection): collection {
         $collection->add_database_table('local_recertify_cc', [
             'userid' => 'privacy:metadata:userid',
             'course' => 'privacy:metadata:course',
             'timeenrolled' => 'privacy:metadata:timeenrolled',
             'timestarted' => 'privacy:metadata:timestarted',
             'timecompleted' => 'privacy:metadata:timecompleted',
-            'reaggregate' => 'privacy:metadata:reaggregate'
+            'reaggregate' => 'privacy:metadata:reaggregate',
         ], 'privacy:metadata:local_recertify_cc');
 
         $collection->add_database_table('local_recertify_cmc', [
@@ -62,7 +58,7 @@ class provider implements
             'completionstate' => 'privacy:metadata:completionstate',
             'viewed' => 'privacy:metadata:viewed',
             'overrideby' => 'privacy:metadata:overrideby',
-            'timemodified' => 'privacy:metadata:timemodified'
+            'timemodified' => 'privacy:metadata:timemodified',
         ], 'privacy:metadata:local_recertify_cmc');
 
         $collection->add_database_table('local_recertify_cc_cc', [
@@ -70,7 +66,7 @@ class provider implements
             'course' => 'privacy:metadata:course',
             'gradefinal' => 'privacy:metadata:gradefinal',
             'unenroled' => 'privacy:metadata:unenroled',
-            'timecompleted' => 'privacy:metadata:timecompleted'
+            'timecompleted' => 'privacy:metadata:timecompleted',
         ], 'privacy:metadata:local_recertify_cc_cc');
 
         $collection->add_database_table('local_recertify_qa', [
@@ -98,7 +94,7 @@ class provider implements
             'attempt' => 'privacy:metadata:attempt',
             'element' => 'privacy:metadata:scoes_track:element',
             'value' => 'privacy:metadata:scoes_track:value',
-            'timemodified' => 'privacy:metadata:timemodified'
+            'timemodified' => 'privacy:metadata:timemodified',
         ], 'privacy:metadata:scorm_scoes_track');
 
         $collection->add_database_table('local_recertify_ltia', [
@@ -121,7 +117,7 @@ class provider implements
             'choiceid' => 'privacy:metadata:local_recertify_cha:choiceid',
             'userid' => 'privacy:metadata:userid',
             'optionid' => 'privacy:metadata:local_recertify_cha:optionid',
-            'timemodified' => 'privacy:metadata:timemodified'
+            'timemodified' => 'privacy:metadata:timemodified',
         ], 'privacy:metadata:local_recertify_cha');
 
         return $collection;
@@ -140,13 +136,14 @@ class provider implements
             if (!$context instanceof \context_course) {
                 return;
             }
-            $params = array('userid' => $userid, 'course' => $context->instanceid);
+            $params = ['userid' => $userid, 'course' => $context->instanceid];
             $records = $DB->get_records('local_recertify_cc', $params);
             foreach ($records as $record) {
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'course_completion'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
 
             $records = $DB->get_records('local_recertify_cc_cc', $params);
@@ -154,7 +151,8 @@ class provider implements
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'course_completion_criteria_compl'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
 
             $records = $DB->get_records('local_recertify_cmc', $params);
@@ -162,7 +160,8 @@ class provider implements
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'course_module_completion'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
 
             $records = $DB->get_records('local_recertify_qa', $params);
@@ -170,7 +169,8 @@ class provider implements
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'quiz_attempts'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
 
             $records = $DB->get_records('local_recertify_qg', $params);
@@ -178,7 +178,8 @@ class provider implements
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'quiz_grades'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
 
             $records = $DB->get_records('local_recertify_sst', $params);
@@ -186,7 +187,8 @@ class provider implements
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'scorm_tracks'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
 
             $records = $DB->get_records('local_recertify_ltia', ['userid' => $userid]);
@@ -194,7 +196,8 @@ class provider implements
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'enrol_lti_users'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
 
             $records = $DB->get_records('local_recertify_qr', $params);
@@ -202,7 +205,8 @@ class provider implements
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'recertify_qr'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
 
             $records = $DB->get_records('local_recertify_cha', $params);
@@ -210,7 +214,8 @@ class provider implements
                 $context = \context_course::instance($record->course);
                 writer::with_context($context)->export_data(
                     [get_string('recertify', 'local_recertify'), 'recertify_cha'],
-                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]);
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
             }
         }
     }
@@ -224,9 +229,9 @@ class provider implements
      * @param stdClass $dbrow A row from the database containing session information.
      * @return stdClass The transformed row.
      */
-    private static function transform_db_row_to_session_data(stdClass $dbrow) : stdClass {
-        $times = array('timeenrolled', 'timestarted', 'timecompleted', 'timemodified', 'timemodifiedoffline',
-            'timestart', 'timefinish');
+    private static function transform_db_row_to_session_data(stdClass $dbrow): stdClass {
+        $times = ['timeenrolled', 'timestarted', 'timecompleted', 'timemodified', 'timemodifiedoffline',
+            'timestart', 'timefinish'];
         foreach ($times as $time) {
             if (isset($dbrow->$time) && (!empty($dbrow->$time))) {
                 $dbrow->$time = transform::datetime($dbrow->$time);
@@ -249,7 +254,7 @@ class provider implements
         }
         $courseid = $context->instanceid;
 
-        $params = array('course' => $courseid);
+        $params = ['course' => $courseid];
         $DB->delete_records('local_recertify_cc', $params);
         $DB->delete_records('local_recertify_cc_cc', $params);
         $DB->delete_records('local_recertify_cmc', $params);
@@ -273,7 +278,7 @@ class provider implements
                 continue;
             }
             $courseid = $context->instanceid;
-            $params = array('userid' => $userid, 'course' => $courseid);
+            $params = ['userid' => $userid, 'course' => $courseid];
             $DB->delete_records('local_recertify_cc', $params);
             $DB->delete_records('local_recertify_cc_cc', $params);
             $DB->delete_records('local_recertify_cmc', $params);
@@ -292,10 +297,10 @@ class provider implements
      * @param int $userid The user to search.
      * @return contextlist $contextlist The contextlist containing the list of contexts used in this plugin.
      */
-    public static function get_contexts_for_userid(int $userid) : contextlist {
+    public static function get_contexts_for_userid(int $userid): contextlist {
         $contextlist = new \core_privacy\local\request\contextlist();
 
-        $params = array('contextlevel' => CONTEXT_COURSE, 'userid' => $userid);
+        $params = ['contextlevel' => CONTEXT_COURSE, 'userid' => $userid];
         $sql = "SELECT ctx.id
                   FROM {course} c
                   JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
@@ -349,7 +354,7 @@ class provider implements
             return;
         }
 
-        $params = array('contextlevel' => CONTEXT_COURSE, 'contextid' => $context->id);
+        $params = ['contextlevel' => CONTEXT_COURSE, 'contextid' => $context->id];
         $sql = "SELECT rc.userid
                   FROM {local_recertify_cc} rc
                   JOIN {course} c ON rc.course = c.id
@@ -419,7 +424,7 @@ class provider implements
         }
         // Prepare SQL to gather all completed IDs.
         $userids = $userlist->get_userids();
-        list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
 
         // Should probably make this simpler using some helper functions... but for now...
 

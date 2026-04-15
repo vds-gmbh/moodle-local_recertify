@@ -51,24 +51,38 @@ class mod_customcert {
         }
         $config = get_config('local_recertify');
 
-        $cba = array();
-        $cba[] = $mform->createElement('radio', 'customcert', '',
-                get_string('donothing', 'local_recertify'), LOCAL_RECERTIFY_NOTHING);
-        $cba[] = $mform->createElement('radio', 'customcert', '',
-                get_string('customcertresetcertificates', 'local_recertify'), LOCAL_RECERTIFY_DELETE);
+        $cba = [];
+        $cba[] = $mform->createElement(
+            'radio',
+            'customcert',
+            '',
+            get_string('donothing', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING
+        );
+        $cba[] = $mform->createElement(
+            'radio',
+            'customcert',
+            '',
+            get_string('customcertresetcertificates', 'local_recertify'),
+            LOCAL_RECERTIFY_DELETE
+        );
 
-        $mform->addGroup($cba, 'customcert', get_string('customcertcertificates', 'local_recertify'), array(' '), false);
+        $mform->addGroup($cba, 'customcert', get_string('customcertcertificates', 'local_recertify'), [' '], false);
         $mform->addHelpButton('customcert', 'customcertcertificates', 'local_recertify');
         $mform->setDefault('customcert', $config->customcertcertificates);
 
-        $mform->addElement('checkbox', 'archivecustomcert',
-                get_string('archivecustomcertcertificates', 'local_recertify'));
+        $mform->addElement(
+            'checkbox',
+            'archivecustomcert',
+            get_string('archivecustomcertcertificates', 'local_recertify')
+        );
         $mform->setDefault('archivecustomcert', $config->archivecustomcert);
 
         $verifywarngroup = []; // Use a workaround to hide a static mform element based on MDL-66251.
         $verifywarn = new \core\output\notification(
-                get_string('customcertresetcertificatesverifywarn', 'local_recertify'),
-                \core\output\notification::NOTIFY_WARNING);
+            get_string('customcertresetcertificatesverifywarn', 'local_recertify'),
+            \core\output\notification::NOTIFY_WARNING
+        );
         $verifywarn->set_show_closebutton(false);
         $verifywarngroup[] =
                 $mform->createElement('static', 'customcertresetcertificatesverifywarn', '', $OUTPUT->render($verifywarn));
@@ -89,16 +103,23 @@ class mod_customcert {
         if (!self::installed()) {
             return;
         }
-        $choices = array(LOCAL_RECERTIFY_NOTHING => get_string('donothing', 'local_recertify'),
-                LOCAL_RECERTIFY_DELETE => get_string('customcertresetcertificates', 'local_recertify'));
+        $choices = [LOCAL_RECERTIFY_NOTHING => get_string('donothing', 'local_recertify'),
+                LOCAL_RECERTIFY_DELETE => get_string('customcertresetcertificates', 'local_recertify')];
 
-        $settings->add(new \admin_setting_configselect('local_recertify/customcertcertificates',
-                new lang_string('customcertcertificates', 'local_recertify'),
-                new lang_string('customcertcertificates_help', 'local_recertify'), LOCAL_RECERTIFY_NOTHING, $choices));
+        $settings->add(new \admin_setting_configselect(
+            'local_recertify/customcertcertificates',
+            new lang_string('customcertcertificates', 'local_recertify'),
+            new lang_string('customcertcertificates_help', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING,
+            $choices
+        ));
 
-        $settings->add(new \admin_setting_configcheckbox('local_recertify/archivecustomcert',
-                new lang_string('archivecustomcertcertificates', 'local_recertify'),
-                new lang_string('archivecustomcertcertificates_help', 'local_recertify'), 1));
+        $settings->add(new \admin_setting_configcheckbox(
+            'local_recertify/archivecustomcert',
+            new lang_string('archivecustomcertcertificates', 'local_recertify'),
+            new lang_string('archivecustomcertcertificates_help', 'local_recertify'),
+            1
+        ));
     }
 
     /**
@@ -118,7 +139,7 @@ class mod_customcert {
             return;
         } else if ($config->customcert == LOCAL_RECERTIFY_DELETE) {
             // Prepare SQL Query.
-            $params = array('userid' => $userid, 'course' => $course->id);
+            $params = ['userid' => $userid, 'course' => $course->id];
             $selectsql = 'userid = ? AND customcertid IN (SELECT id FROM {customcert} WHERE course = ?)';
 
             // If archiving is activated.
@@ -143,7 +164,7 @@ class mod_customcert {
      */
     public static function installed() {
         global $CFG;
-        if (!file_exists($CFG->dirroot.'/mod/customcert/version.php')) {
+        if (!file_exists($CFG->dirroot . '/mod/customcert/version.php')) {
             return false;
         }
         return true;

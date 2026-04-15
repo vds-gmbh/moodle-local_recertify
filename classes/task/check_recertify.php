@@ -48,7 +48,7 @@ class check_recertify extends \core\task\scheduled_task {
         require_once($CFG->dirroot . '/course/lib.php');
         require_once($CFG->dirroot . '/local/recertify/locallib.php');
         require_once($CFG->libdir . '/completionlib.php');
-        require_once($CFG->libdir.'/gradelib.php');
+        require_once($CFG->libdir . '/gradelib.php');
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         require_once($CFG->dirroot . '/mod/quiz/lib.php');
 
@@ -61,11 +61,11 @@ class check_recertify extends \core\task\scheduled_task {
             JOIN {local_recertify_config} r ON r.course = cc.course AND r.name = 'enable' AND r.value = '1'
             JOIN {local_recertify_config} r2 ON r2.course = cc.course AND r2.name = 'recertifyduration'
             JOIN {course} c ON c.id = cc.course
-            WHERE c.enablecompletion = ".COMPLETION_ENABLED." AND cc.timecompleted > 0 AND
-            (cc.timecompleted + ".$DB->sql_cast_char2int('r2.value').") < ?";
-        $users = $DB->get_recordset_sql($sql, array(time()));
-        $courses = array();
-        $configs = array();
+            WHERE c.enablecompletion = " . COMPLETION_ENABLED . " AND cc.timecompleted > 0 AND
+            (cc.timecompleted + " . $DB->sql_cast_char2int('r2.value') . ") < ?";
+        $users = $DB->get_recordset_sql($sql, [time()]);
+        $courses = [];
+        $configs = [];
         $clearcache = false;
         foreach ($users as $user) {
             if (!isset($courses[$user->course])) {
@@ -79,7 +79,7 @@ class check_recertify extends \core\task\scheduled_task {
             // Get recertify config.
             if (!isset($configs[$user->course])) {
                 // Only get the recertify config record for this course once.
-                $config = $DB->get_records_menu('local_recertify_config', array('course' => $course->id), '', 'name, value');
+                $config = $DB->get_records_menu('local_recertify_config', ['course' => $course->id], '', 'name, value');
                 $config = (object) $config;
                 $configs[$user->course] = $config;
             } else {
@@ -97,27 +97,24 @@ class check_recertify extends \core\task\scheduled_task {
      */
     protected function reset_completions($userid, $course, $config) {
         global $DB;
-        $params = array('userid' => $userid, 'course' => $course->id);
+        $params = ['userid' => $userid, 'course' => $course->id];
 
-
-//        if (!empty(get_config('local_recertify', 'forcearchivecompletiondata')) || $config->archivecompletiondata) {
-//            $coursecompletions = $DB->get_records('course_completions', $params);
-//            $DB->insert_records('local_recertify_cc', $coursecompletions);
-//            $criteriacompletions = $DB->get_records('course_completion_crit_compl', $params);
-//            $DB->insert_records('local_recertify_cc_cc', $criteriacompletions);
-//        }
+        // if (!empty(get_config('local_recertify', 'forcearchivecompletiondata')) || $config->archivecompletiondata) {
+        // $coursecompletions = $DB->get_records('course_completions', $params);
+        // $DB->insert_records('local_recertify_cc', $coursecompletions);
+        // $criteriacompletions = $DB->get_records('course_completion_crit_compl', $params);
+        // $DB->insert_records('local_recertify_cc_cc', $criteriacompletions);
+        // }
 
         $coursecompletions = $DB->get_records('course_completions', $params);
         if (!empty(get_config('local_recertify', 'forcearchivecompletiondata')) || $config->archivecompletiondata) {
-
             $DB->insert_records('local_recertify_cc', $coursecompletions);
             $criteriacompletions = $DB->get_records('course_completion_crit_compl', $params);
             $DB->insert_records('local_recertify_cc_cc', $criteriacompletions);
         }
         $DB->delete_records('course_completions', $params);
 
-
-        //$DB->delete_records('course_completions', $params);
+        // $DB->delete_records('course_completions', $params);
         // Update existing records instead of deleting them
         foreach ($coursecompletions as $coursecompletion) {
             $coursecompletion->timeenrolled = time();
@@ -156,47 +153,42 @@ class check_recertify extends \core\task\scheduled_task {
             return;
         }
 
-        $userrecord = $DB->get_record('user', array('id' => $userid));
+        $userrecord = $DB->get_record('user', ['id' => $userid]);
         $context = \context_course::instance($course->id);
 
-
-//        $from = get_admin();
-//        $a = new \stdClass();
-//        $a->coursename = format_string($course->fullname, true, array('context' => $context));
-//        $a->profileurl = "$CFG->wwwroot/user/view.php?id=$userrecord->id&course=$course->id";
-//        $a->link = course_get_url($course)->out();
+        // $from = get_admin();
+        // $a = new \stdClass();
+        // $a->coursename = format_string($course->fullname, true, array('context' => $context));
+        // $a->profileurl = "$CFG->wwwroot/user/view.php?id=$userrecord->id&course=$course->id";
+        // $a->link = course_get_url($course)->out();
         $from = \core_user::get_support_user();
         $placeholder = [
                 '{$a->coursename}' => format_string($course->fullname, true, ['context' => $context]),
                 '{$a->profileurl}' => "$CFG->wwwroot/user/view.php?id=$userrecord->id&course=$course->id",
                 '{$a->link}'       => course_get_url($course)->out(),
                 '{$a->fullname}'   => fullname($userrecord),
-                '{$a->email}'      => $userrecord->email
+                '{$a->email}'      => $userrecord->email,
                 ];
         $a = (object) [
                 'coursename' => $placeholder['{$a->coursename}'],
-                'link'       => $placeholder['{$a->link}']
+                'link'       => $placeholder['{$a->link}'],
                 ];
         // Mail body
 
-
         if (trim($config->recertifyemailbody) !== '') {
-
-
-//            $message = $config->recertifyemailbody;
-//            $key = ['{$a->coursename}', '{$a->profileurl}', '{$a->link}', '{$a->fullname}', '{$a->email}'];
-//            $value = [$a->coursename, $a->profileurl, $a->link, fullname($userrecord), $userrecord->email];
-//            $message = str_replace($key, $value, $message);
-//            // Message body now stored as html - some might be non-html though, so we have to handle both - not clean but it works for now.
-//            $keyhtml = ['{$a-&gt;coursename}', '{$a-&gt;profileurl}', '{$a-&gt;link}', '{$a-&gt;fullname}', '{$a-&gt;email}'];
-//            $message = str_replace($keyhtml, $value, $message);
+            // $message = $config->recertifyemailbody;
+            // $key = ['{$a->coursename}', '{$a->profileurl}', '{$a->link}', '{$a->fullname}', '{$a->email}'];
+            // $value = [$a->coursename, $a->profileurl, $a->link, fullname($userrecord), $userrecord->email];
+            // $message = str_replace($key, $value, $message);
+            // Message body now stored as html - some might be non-html though, so we have to handle both - not clean but it works for now.
+            // $keyhtml = ['{$a-&gt;coursename}', '{$a-&gt;profileurl}', '{$a-&gt;link}', '{$a-&gt;fullname}', '{$a-&gt;email}'];
+            // $message = str_replace($keyhtml, $value, $message);
             // Use mail body from course
             $message = str_replace(
                 array_keys($placeholder),
                 array_values($placeholder),
                 $config->recertifyemailbody
             );
-
 
             // Message body now stored as html - some might be non-html though, so we have to handle both - not clean but it works for now.
             $keyhtml = ['{$a-&gt;coursename}', '{$a-&gt;profileurl}', '{$a-&gt;link}', '{$a-&gt;fullname}', '{$a-&gt;email}'];
@@ -206,13 +198,10 @@ class check_recertify extends \core\task\scheduled_task {
                 $message
             );
 
+            $messagehtml = format_text($message, FORMAT_HTML, ['context' => $context,
 
-            $messagehtml = format_text($message, FORMAT_HTML, array('context' => $context,
-
-
-//                'para' => false, 'newlines' => true, 'filter' => true));
-                'para' => false, 'newlines' => false, 'filter' => false, 'noclean' => true));
-
+            // 'para' => false, 'newlines' => true, 'filter' => true));
+                'para' => false, 'newlines' => false, 'filter' => false, 'noclean' => true]);
 
             $messagetext = html_to_text($messagehtml);
         } else {
@@ -220,25 +209,21 @@ class check_recertify extends \core\task\scheduled_task {
             $messagehtml = text_to_html($messagetext, null, false, true);
         }
         if (trim($config->recertifyemailsubject) !== '') {
-
-
-//            $subject = $config->recertifyemailsubject;
-//            $keysub = array('{$a->coursename}', '{$a->fullname}');
-//            $valuesub = array($a->coursename, fullname($userrecord));
-//            $subject = str_replace($keysub, $valuesub, $subject);
+            // $subject = $config->recertifyemailsubject;
+            // $keysub = array('{$a->coursename}', '{$a->fullname}');
+            // $valuesub = array($a->coursename, fullname($userrecord));
+            // $subject = str_replace($keysub, $valuesub, $subject);
             $subject = str_replace(
                 array_keys($placeholder),
                 array_values($placeholder),
                 $config->recertifyemailsubject
             );
-
         } else {
             $subject = get_string('recertifyemaildefaultsubject', 'local_recertify', $a);
         }
         // Directly emailing recertify message rather than using messaging.
 
-
-//        email_to_user($userrecord, $from, $subject, $messagetext, $messagehtml);
+        // email_to_user($userrecord, $from, $subject, $messagetext, $messagehtml);
         $messagehtml = \local_recertify_recertify_emails::getEmail(
             $subject,
             $messagehtml
@@ -259,9 +244,9 @@ class check_recertify extends \core\task\scheduled_task {
 
         // Delete current grade information.
         if ($config->deletegradedata) {
-            if ($items = \grade_item::fetch_all(array('courseid' => $course->id))) {
+            if ($items = \grade_item::fetch_all(['courseid' => $course->id])) {
                 foreach ($items as $item) {
-                    if ($grades = \grade_grade::fetch_all(array('userid' => $userid, 'itemid' => $item->id))) {
+                    if ($grades = \grade_grade::fetch_all(['userid' => $userid, 'itemid' => $item->id])) {
                         foreach ($grades as $grade) {
                             $grade->delete('local_recertify');
                         }
@@ -286,12 +271,12 @@ class check_recertify extends \core\task\scheduled_task {
         // Trigger completion reset event for this user.
         $context = \context_course::instance($course->id);
         $event = \local_recertify\event\completion_reset::create(
-            array(
+            [
                 'objectid'      => $course->id,
                 'relateduserid' => $userid,
                 'courseid' => $course->id,
                 'context' => $context,
-            )
+            ]
         );
         $event->trigger();
 

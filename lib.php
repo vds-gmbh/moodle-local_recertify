@@ -39,20 +39,19 @@ function local_recertify_extend_navigation_course($navigation, $course, $context
     if (has_capability('local/recertify:resetmycompletion', $context)) {
         $enabled = $DB->get_field('local_recertify_config', 'value', ['name' => 'enable', 'course' => $course->id]);
         if (!empty($enabled)) {
-            $url = new moodle_url('/local/recertify/resetcompletion.php', array('id' => $course->id));
+            $url = new moodle_url('/local/recertify/resetcompletion.php', ['id' => $course->id]);
             $name = get_string('resetmycompletion', 'local_recertify');
             $navigation->add($name, $url, navigation_node::TYPE_SETTING, null, null, new pix_icon('i/settings', ''));
         }
     }
 
     if (has_capability('local/recertify:manage', $context)) {
-        $url = new moodle_url('/local/recertify/recertify.php', array('id' => $course->id));
+        $url = new moodle_url('/local/recertify/recertify.php', ['id' => $course->id]);
         $name = get_string('pluginname', 'local_recertify');
         $navigation->add($name, $url, navigation_node::TYPE_SETTING, null, null, new pix_icon('i/settings', ''));
 
-        $url = new moodle_url('/local/recertify/participants.php', array('id' => $course->id));
+        $url = new moodle_url('/local/recertify/participants.php', ['id' => $course->id]);
         $name = get_string('modifycompletiondates', 'local_recertify');
         $navigation->add($name, $url, navigation_node::TYPE_SETTING, null, null, new pix_icon('i/settings', ''));
-
     }
 }

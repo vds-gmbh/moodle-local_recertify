@@ -49,13 +49,23 @@ class mod_pulse {
         }
         $config = get_config('local_recertify');
 
-        $cba = array();
-        $cba[] = $mform->createElement('radio', 'pulse', '',
-                get_string('donothing', 'local_recertify'), LOCAL_RECERTIFY_NOTHING);
-        $cba[] = $mform->createElement('radio', 'pulse', '',
-                get_string('pulseresetnotifications', 'local_recertify'), LOCAL_RECERTIFY_DELETE);
+        $cba = [];
+        $cba[] = $mform->createElement(
+            'radio',
+            'pulse',
+            '',
+            get_string('donothing', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING
+        );
+        $cba[] = $mform->createElement(
+            'radio',
+            'pulse',
+            '',
+            get_string('pulseresetnotifications', 'local_recertify'),
+            LOCAL_RECERTIFY_DELETE
+        );
 
-        $mform->addGroup($cba, 'pulse', get_string('pulsenotifications', 'local_recertify'), array(' '), false);
+        $mform->addGroup($cba, 'pulse', get_string('pulsenotifications', 'local_recertify'), [' '], false);
         $mform->addHelpButton('pulse', 'pulsenotifications', 'local_recertify');
         $mform->setDefault('pulse', $config->pulsenotifications);
     }
@@ -69,11 +79,15 @@ class mod_pulse {
         if (!self::installed()) {
             return;
         }
-        $choices = array(LOCAL_RECERTIFY_NOTHING => get_string('donothing', 'local_recertify'),
-                LOCAL_RECERTIFY_DELETE => get_string('pulseresetnotifications', 'local_recertify'));
-        $settings->add(new \admin_setting_configselect('local_recertify/pulsenotifications',
-                new lang_string('pulsenotifications', 'local_recertify'),
-                new lang_string('pulsenotifications_help', 'local_recertify'), LOCAL_RECERTIFY_NOTHING, $choices));
+        $choices = [LOCAL_RECERTIFY_NOTHING => get_string('donothing', 'local_recertify'),
+                LOCAL_RECERTIFY_DELETE => get_string('pulseresetnotifications', 'local_recertify')];
+        $settings->add(new \admin_setting_configselect(
+            'local_recertify/pulsenotifications',
+            new lang_string('pulsenotifications', 'local_recertify'),
+            new lang_string('pulsenotifications_help', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING,
+            $choices
+        ));
     }
 
     /**
@@ -93,7 +107,7 @@ class mod_pulse {
             return;
         } else if ($config->pulse == LOCAL_RECERTIFY_DELETE) {
             // Prepare SQL Query.
-            $params = array('userid' => $userid, 'course' => $course->id);
+            $params = ['userid' => $userid, 'course' => $course->id];
             $selectsql = 'userid = ? AND pulseid IN (SELECT id FROM {pulse} WHERE course = ?)';
 
             // Delete records from pulse_users.
@@ -112,7 +126,7 @@ class mod_pulse {
      */
     public static function installed() {
         global $CFG;
-        if (!file_exists($CFG->dirroot.'/mod/pulse/version.php')) {
+        if (!file_exists($CFG->dirroot . '/mod/pulse/version.php')) {
             return false;
         }
         return true;

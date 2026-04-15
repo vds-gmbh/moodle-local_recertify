@@ -41,23 +41,41 @@ class mod_quiz {
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function editingform($mform) : void {
+    public static function editingform($mform): void {
         $config = get_config('local_recertify');
 
-        $cba = array();
-        $cba[] = $mform->createElement('radio', 'quiz', '',
-            get_string('donothing', 'local_recertify'), LOCAL_RECERTIFY_NOTHING);
-        $cba[] = $mform->createElement('radio', 'quiz', '',
-            get_string('delete', 'local_recertify'), LOCAL_RECERTIFY_DELETE);
-        $cba[] = $mform->createElement('radio', 'quiz', '',
-            get_string('extraattempt', 'local_recertify'), LOCAL_RECERTIFY_EXTRAATTEMPT);
+        $cba = [];
+        $cba[] = $mform->createElement(
+            'radio',
+            'quiz',
+            '',
+            get_string('donothing', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING
+        );
+        $cba[] = $mform->createElement(
+            'radio',
+            'quiz',
+            '',
+            get_string('delete', 'local_recertify'),
+            LOCAL_RECERTIFY_DELETE
+        );
+        $cba[] = $mform->createElement(
+            'radio',
+            'quiz',
+            '',
+            get_string('extraattempt', 'local_recertify'),
+            LOCAL_RECERTIFY_EXTRAATTEMPT
+        );
 
-        $mform->addGroup($cba, 'quiz', get_string('quizattempts', 'local_recertify'), array(' '), false);
+        $mform->addGroup($cba, 'quiz', get_string('quizattempts', 'local_recertify'), [' '], false);
         $mform->addHelpButton('quiz', 'quizattempts', 'local_recertify');
         $mform->setDefault('quiz', $config->quizattempts);
 
-        $mform->addElement('checkbox', 'archivequiz',
-            get_string('archive', 'local_recertify'));
+        $mform->addElement(
+            'checkbox',
+            'archivequiz',
+            get_string('archive', 'local_recertify')
+        );
         $mform->setDefault('archivequiz', $config->archivequiz);
 
         $mform->disabledIf('quiz', 'enable', 'notchecked');
@@ -71,16 +89,24 @@ class mod_quiz {
      * @param admin_settingpage $settings
      */
     public static function settings($settings) {
-        $choices = array(LOCAL_RECERTIFY_NOTHING => new lang_string('donothing', 'local_recertify'),
+        $choices = [LOCAL_RECERTIFY_NOTHING => new lang_string('donothing', 'local_recertify'),
                          LOCAL_RECERTIFY_DELETE => new lang_string('delete', 'local_recertify'),
-                         LOCAL_RECERTIFY_EXTRAATTEMPT => new lang_string('extraattempt', 'local_recertify'));
+                         LOCAL_RECERTIFY_EXTRAATTEMPT => new lang_string('extraattempt', 'local_recertify')];
 
-        $settings->add(new \admin_setting_configselect('local_recertify/quizattempts',
+        $settings->add(new \admin_setting_configselect(
+            'local_recertify/quizattempts',
             new lang_string('quizattempts', 'local_recertify'),
-            new lang_string('quizattempts_help', 'local_recertify'), LOCAL_RECERTIFY_NOTHING, $choices));
+            new lang_string('quizattempts_help', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING,
+            $choices
+        ));
 
-        $settings->add(new \admin_setting_configcheckbox('local_recertify/archivequiz',
-            new lang_string('archivequiz', 'local_recertify'), '', 1));
+        $settings->add(new \admin_setting_configcheckbox(
+            'local_recertify/archivequiz',
+            new lang_string('archivequiz', 'local_recertify'),
+            '',
+            1
+        ));
     }
 
     /**
@@ -94,7 +120,7 @@ class mod_quiz {
         if (empty($config->quiz)) {
             return;
         } else if ($config->quiz == LOCAL_RECERTIFY_DELETE) {
-            $params = array('userid' => $userid, 'course' => $course->id);
+            $params = ['userid' => $userid, 'course' => $course->id];
             $selectsql = 'userid = ? AND quiz IN (SELECT id FROM {quiz} WHERE course = ?)';
             if ($config->archivequiz) {
                 $quizattempts = $DB->get_records_select('quiz_attempts', $selectsql, $params);
@@ -119,7 +145,7 @@ class mod_quiz {
                       FROM {quiz} q
                       JOIN {quiz_attempts} qa ON q.id = qa.quiz
                      WHERE q.attempts > 0 AND q.course = ? AND qa.userid = ?";
-            $quizzes = $DB->get_recordset_sql( $sql, array($course->id, $userid));
+            $quizzes = $DB->get_recordset_sql($sql, [$course->id, $userid]);
             foreach ($quizzes as $quiz) {
                 // Get number of this users attempts.
                 $attempts = \quiz_get_user_attempts($quiz->id, $userid);
@@ -133,17 +159,17 @@ class mod_quiz {
                 $cm = get_coursemodule_from_instance('quiz', $quiz->id);
                 $context = \context_module::instance($cm->id);
 
-                $eventparams = array(
+                $eventparams = [
                     'context' => $context,
-                    'other' => array(
-                        'quizid' => $quiz->id
-                    ),
-                    'relateduserid' => $userid
-                );
+                    'other' => [
+                        'quizid' => $quiz->id,
+                    ],
+                    'relateduserid' => $userid,
+                ];
 
-                $conditions = array(
+                $conditions = [
                     'quiz' => $quiz->id,
-                    'userid' => $userid);
+                    'userid' => $userid];
                 if ($oldoverride = $DB->get_record('quiz_overrides', $conditions)) {
                     if ($oldoverride->attempts < $nowallowed) {
                         $oldoverride->attempts = $nowallowed;
@@ -158,7 +184,7 @@ class mod_quiz {
                     $data->quiz = $quiz->id;
                     $data->userid = $userid;
                     // Merge quiz defaults with data.
-                    $keys = array('timeopen', 'timeclose', 'timelimit', 'password');
+                    $keys = ['timeopen', 'timeclose', 'timelimit', 'password'];
                     foreach ($keys as $key) {
                         if (!isset($data->{$key})) {
                             $data->{$key} = $quiz->{$key};

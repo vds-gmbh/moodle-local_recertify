@@ -35,10 +35,10 @@ define('LOCAL_RECERTIFY_EXTRAATTEMPT', 2);
 function local_recertify_get_supported_plugins() {
     global $CFG;
     $plugins = [];
-    $files = scandir($CFG->dirroot. '/local/recertify/classes/plugins');
+    $files = scandir($CFG->dirroot . '/local/recertify/classes/plugins');
     foreach ($files as $file) {
         $component = clean_param(str_replace('.php', '', $file), PARAM_ALPHAEXT);
-        list($plugin, $type) = core_component::normalize_component($component);
+        [$plugin, $type] = core_component::normalize_component($component);
 
         if (!core_component::is_valid_plugin_name($type, $plugin)) {
             continue;
@@ -47,7 +47,6 @@ function local_recertify_get_supported_plugins() {
         if ($plugin != 'core' && core_component::get_component_directory($component)) {
             $plugins[] = core_component::normalize_componentname($component);
         }
-
     }
     return $plugins;
 }
@@ -82,9 +81,8 @@ function local_recertify_get_data(array $data) {
         $result['recertifyemailbody_format'] = FORMAT_HTML;
     }
     // Prepare email body for editor.
-    $emailbody = array('text' => $result['recertifyemailbody'], 'format' => $result['recertifyemailbody_format']);
+    $emailbody = ['text' => $result['recertifyemailbody'], 'format' => $result['recertifyemailbody_format']];
     $result['recertifyemailbody'] = $emailbody;
 
     return $result;
 }
-

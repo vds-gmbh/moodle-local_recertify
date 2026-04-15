@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$observers = array (
-    array(
+$observers = [
+    [
         'eventname' => '\mod_assign\event\submission_graded',
-        'callback' => 'local_recertify_observer::submission_graded'
-    ),
-);
+        'callback' => 'local_recertify_observer::submission_graded',
+    ],
+];

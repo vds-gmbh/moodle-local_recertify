@@ -24,26 +24,26 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
-    array(
+$tasks = [
+    [
         'classname' => 'local_recertify\task\check_recertify',
         'blocking' => 0,
         'minute' => 'R',
         'hour' => 'R',
         'day' => '*',
         'dayofweek' => '*',
-        'month' => '*'
-    ),
+        'month' => '*',
+    ],
 
 
-    array(
+    [
         'classname' => 'local_recertify\task\supervisor_notification',
         'blocking' => 1,
         'minute' => '0',
         'hour' => '6',
         'day' => '1',
         'dayofweek' => '*',
-        'month' => '*'
-    )
+        'month' => '*',
+    ],
 
-);
+];

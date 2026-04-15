@@ -39,13 +39,13 @@ class local_recertify_observer {
         $assign = $event->get_assign();
         $course = $assign->get_course();
         // Check if recertify enabled.
-        $config = $DB->get_records_menu('local_recertify_config', array('course' => $course->id), '', 'name, value');
+        $config = $DB->get_records_menu('local_recertify_config', ['course' => $course->id], '', 'name, value');
         $config = (object) $config;
         if (!empty($config->enable) && !empty($config->assignevent)) {
-            $params = array(
+            $params = [
                 'userid'    => $event->relateduserid,
-                'course'    => $course->id
-            );
+                'course'    => $course->id,
+            ];
             $ccompletion = new \completion_completion($params);
             // Only update course completion date if already flagged complete.
             if ($ccompletion->is_complete()) {

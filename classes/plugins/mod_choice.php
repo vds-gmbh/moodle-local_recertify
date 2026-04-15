@@ -41,21 +41,34 @@ class mod_choice {
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function editingform($mform) : void {
+    public static function editingform($mform): void {
         $config = get_config('local_recertify');
 
-        $cba = array();
-        $cba[] = $mform->createElement('radio', 'choice', '',
-            get_string('donothing', 'local_recertify'), LOCAL_RECERTIFY_NOTHING);
-        $cba[] = $mform->createElement('radio', 'choice', '',
-            get_string('delete', 'local_recertify'), LOCAL_RECERTIFY_DELETE);
+        $cba = [];
+        $cba[] = $mform->createElement(
+            'radio',
+            'choice',
+            '',
+            get_string('donothing', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING
+        );
+        $cba[] = $mform->createElement(
+            'radio',
+            'choice',
+            '',
+            get_string('delete', 'local_recertify'),
+            LOCAL_RECERTIFY_DELETE
+        );
 
-        $mform->addGroup($cba, 'choice', get_string('choiceattempts', 'local_recertify'), array(' '), false);
+        $mform->addGroup($cba, 'choice', get_string('choiceattempts', 'local_recertify'), [' '], false);
         $mform->addHelpButton('choice', 'choiceattempts', 'local_recertify');
         $mform->setDefault('choice', $config->choiceattempts);
 
-        $mform->addElement('checkbox', 'archivechoice',
-            get_string('archive', 'local_recertify'));
+        $mform->addElement(
+            'checkbox',
+            'archivechoice',
+            get_string('archive', 'local_recertify')
+        );
         $mform->setDefault('archivechoice', $config->archivechoice);
 
         $mform->disabledIf('archivechoice', 'enable', 'notchecked');
@@ -70,15 +83,23 @@ class mod_choice {
      */
     public static function settings($settings) {
 
-        $choices = array(LOCAL_RECERTIFY_NOTHING => new lang_string('donothing', 'local_recertify'),
-                         LOCAL_RECERTIFY_DELETE => new lang_string('delete', 'local_recertify'));
+        $choices = [LOCAL_RECERTIFY_NOTHING => new lang_string('donothing', 'local_recertify'),
+                         LOCAL_RECERTIFY_DELETE => new lang_string('delete', 'local_recertify')];
 
-        $settings->add(new \admin_setting_configselect('local_recertify/choiceattempts',
+        $settings->add(new \admin_setting_configselect(
+            'local_recertify/choiceattempts',
             new lang_string('choiceattempts', 'local_recertify'),
-            new lang_string('choiceattempts_help', 'local_recertify'), LOCAL_RECERTIFY_NOTHING, $choices));
+            new lang_string('choiceattempts_help', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING,
+            $choices
+        ));
 
-        $settings->add(new \admin_setting_configcheckbox('local_recertify/archivechoice',
-            new lang_string('archivechoice', 'local_recertify'), '', 1));
+        $settings->add(new \admin_setting_configcheckbox(
+            'local_recertify/archivechoice',
+            new lang_string('archivechoice', 'local_recertify'),
+            '',
+            1
+        ));
     }
 
     /**
@@ -93,7 +114,7 @@ class mod_choice {
         if (empty($config->choice)) {
             return;
         } else if ($config->choice == LOCAL_RECERTIFY_DELETE) {
-            $params = array('userid' => $userid, 'course' => $course->id);
+            $params = ['userid' => $userid, 'course' => $course->id];
             $selectsql = 'userid = ? AND choiceid IN (SELECT id FROM {choice} WHERE course = ?)';
             if ($config->archivechoice) {
                 $choiceanswers = $DB->get_records_select('choice_answers', $selectsql, $params);

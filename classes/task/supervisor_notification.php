@@ -35,8 +35,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 class supervisor_notification extends \core\task\scheduled_task
 {
-    private static function get_password($length = 8, $add_dashes = false, $available_sets = 'luds')
-    {
+    private static function get_password($length = 8, $add_dashes = false, $available_sets = 'luds') {
         $sets = [];
 
         if (strpos($available_sets, 'l') !== false) {
@@ -83,8 +82,7 @@ class supervisor_notification extends \core\task\scheduled_task
     /**
      * Returns the name of this task.
      */
-    public function get_name()
-    {
+    public function get_name() {
         // Shown in admin screens.
         return get_string('supervisor_notificationtask', 'local_recertify');
     }
@@ -92,8 +90,7 @@ class supervisor_notification extends \core\task\scheduled_task
     /**
      * Execute task.
      */
-    public function execute()
-    {
+    public function execute() {
         global $CFG, $DB;
         require_once($CFG->dirroot . '/course/lib.php');
         require_once($CFG->dirroot . '/local/recertify/locallib.php');
@@ -101,14 +98,14 @@ class supervisor_notification extends \core\task\scheduled_task
         require_once($CFG->libdir . '/gradelib.php');
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         require_once($CFG->dirroot . '/mod/quiz/lib.php');
-        require_once($CFG->dirroot .'/user/lib.php');
+        require_once($CFG->dirroot . '/user/lib.php');
 
         if (!\completion_info::is_enabled_for_site()) {
             return;
         }
 
         try {
-            $coursesSql = "SELECT c.id  
+            $coursesSql = "SELECT c.id
                 FROM {course} c
                 JOIN {local_recertify_config} r ON r.course = c.id AND r.name = 'enable' AND r.value = '1'
                 WHERE c.enablecompletion = " . COMPLETION_ENABLED;
@@ -117,23 +114,23 @@ class supervisor_notification extends \core\task\scheduled_task
             $courses = $DB->get_recordset_sql($coursesSql);
 
             foreach ($courses as $course) {
-                $config = $DB->get_records_menu('local_recertify_config', array('course' => $course->id), '', 'name, value');
+                $config = $DB->get_records_menu('local_recertify_config', ['course' => $course->id], '', 'name, value');
                 $course = \get_course($course->id);
 
                 $namefields = [];
                 foreach (\core_user\fields::get_name_fields() as $field) {
-                    $namefields[] = 'u.'. $field;
+                    $namefields[] = 'u.' . $field;
                 }
-                $namefieldsstr = implode (',', $namefields);
+                $namefieldsstr = implode(',', $namefields);
 
-                $usersSql = "SELECT 
-                    u.id, 
-                    u.username, 
+                $usersSql = "SELECT
+                    u.id,
+                    u.username,
                     $namefieldsstr,
                     u.email,
                     u.mailformat,
-                    COALESCE(NULLIF(cc.timeenrolled, 0), ue.timestart) AS timeenrolled, 
-                    cc.timestarted, 
+                    COALESCE(NULLIF(cc.timeenrolled, 0), ue.timestart) AS timeenrolled,
+                    cc.timestarted,
                     cc.timecompleted,
                     ue.status AS enrol_status
                     FROM {user} u
@@ -147,18 +144,18 @@ class supervisor_notification extends \core\task\scheduled_task
                     )";
 
                 // Users in the current course incompleted attempts
-                $users = $DB->get_recordset_sql($usersSql, array($course->id));
+                $users = $DB->get_recordset_sql($usersSql, [$course->id]);
 
-                $supervisors = array();
+                $supervisors = [];
                 foreach ($users as $user) {
                     // Find supervisors of current user
-                    $userSupervisors =  $this->get_user_supervisors($user->id);
+                    $userSupervisors = $this->get_user_supervisors($user->id);
 
                     foreach ($userSupervisors as $supervisor) {
                         if (!isset($supervisors[$supervisor->id])) {
                             $supervisors[$supervisor->id] = [
                                 'supervisor' => $supervisor,
-                                'users'      => [$user]
+                                'users'      => [$user],
                             ];
                         } else {
                             $supervisors[$supervisor->id]['users'][] = $user;
@@ -187,8 +184,7 @@ class supervisor_notification extends \core\task\scheduled_task
      * @param array $users - records from user table.
      * @param \stdClass $config - recertify config.
      */
-    protected function notify_supervisor($course, $supervisor, $users, $config)
-    {
+    protected function notify_supervisor($course, $supervisor, $users, $config) {
         global $DB;
 
         if (!isset($config['supervisoremailenable']) || $config['supervisoremailenable'] !== '1') {
@@ -198,7 +194,7 @@ class supervisor_notification extends \core\task\scheduled_task
         $from = \core_user::get_support_user();
 
         $context = \context_course::instance($course->id);
-        $coursename = format_string($course->fullname, true, array('context' => $context));
+        $coursename = format_string($course->fullname, true, ['context' => $context]);
         $courselink = course_get_url($course)->out();
         $strsubject = get_string('supervisoremail:subject', 'local_recertify', $coursename);
         $strheading = get_string('supervisoremail:heading', 'local_recertify');
@@ -251,21 +247,23 @@ HTML;
 
         foreach ($users as $user) {
             $timecompleted = $user->timecompleted ? new \DateTime('@' . $user->timecompleted, $tz) : null;
-            $timeenrolled  = $user->timeenrolled  ? new \DateTime('@' . $user->timeenrolled, $tz)  : null;
-            $timestarted   = $user->timestarted  ? new \DateTime('@' . $user->timestarted, $tz)    : null;
+            $timeenrolled  = $user->timeenrolled ? new \DateTime('@' . $user->timeenrolled, $tz) : null;
+            $timestarted   = $user->timestarted ? new \DateTime('@' . $user->timestarted, $tz) : null;
             $suspended     = $user->enrol_status == 1;
             $interval = new \DateInterval('PT' . $config['recertifyduration'] . 'S');
 
             // Get user's last completed time from completion table.
             if (!$timecompleted) {
-                $lastimecomplete = $DB->get_field_sql('
-                          SELECT timecompleted 
-                            FROM {local_recertify_cc} 
-                           WHERE course = :course 
-                             AND userid = :userid 
+                $lastimecomplete = $DB->get_field_sql(
+                    '
+                          SELECT timecompleted
+                            FROM {local_recertify_cc}
+                           WHERE course = :course
+                             AND userid = :userid
                         ORDER BY id DESC LIMIT 1
                         ',
-                    ['course' => $course->id, 'userid' => $user->id]);
+                    ['course' => $course->id, 'userid' => $user->id]
+                );
                 if ($lastimecomplete) {
                     $timetocheck = \local_recertify\reset_log::retrieve_last_reset_time(
                         $user->id,
@@ -281,7 +279,7 @@ HTML;
 
             if ($suspended) {
                 $colClassName = 'text-muted';
-            } elseif (!$timecompleted) {
+            } else if (!$timecompleted) {
                 $daysOverdue = $now->diff($timetocheck)->format("%a") + 1;
                 $colClassName = $daysOverdue > 30 ? 'text-danger' : 'text-warning';
             } else {
@@ -332,14 +330,14 @@ HTML;
             // Set new password for users without email if attempt is not completed and not started
             if (!$email && !$timecompleted && !$timestarted) {
                 $newPassword = self::get_password();
-                $fulluser = $DB->get_record('user', array('id'=> $user->id));
+                $fulluser = $DB->get_record('user', ['id' => $user->id]);
                 $fulluser->password = $newPassword;
                 \set_user_preference('auth_forcepasswordchange', 1, $fulluser);
                 \user_update_user($fulluser, true, false);
 
                 $passwordResetUsers[] = [
                     'user'     => $user,
-                    'password' => $newPassword
+                    'password' => $newPassword,
                 ];
             }
         }
@@ -394,7 +392,6 @@ HTML;
                             <td><code>$password</code></th>
                         </tr>
 HTML;
-
             }
 
             $messagehtml .= <<<HTML
@@ -457,7 +454,8 @@ HTML;
                     true
                 );
             }
-        } catch (\Exception $error) {}
+        } catch (\Exception $error) {
+        }
     }
 
     /**
@@ -466,14 +464,13 @@ HTML;
      * @param  int $userid
      * @return array
      */
-    
-    private function get_user_supervisors($userid)
-    {
+
+    private function get_user_supervisors($userid) {
         global $DB;
 
         $roleid = get_config('local_recertify', 'supervisorrole') ?: 10; // For backwards compatibiilty.
 
-        $userContext =  \context_user::instance($userid);
+        $userContext = \context_user::instance($userid);
         $sql = "SELECT ra.userid
                   FROM {role_assignments} ra
                  WHERE ra.roleid = $roleid AND ra.contextid = ?";
@@ -484,7 +481,7 @@ HTML;
             },
             $DB->get_records_sql(
                 $sql,
-                array($userContext->id)
+                [$userContext->id]
             )
         );
 

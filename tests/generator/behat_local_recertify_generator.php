@@ -22,8 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-Class behat_local_recertify_generator extends behat_generator_base {
-
+/**
+ * Behat data generator for local_recertify.
+ */
+class behat_local_recertify_generator extends behat_generator_base {
     /**
      * Get a list of the entities that Behat can create using the generator step.
      * For use with a Moodle site only.

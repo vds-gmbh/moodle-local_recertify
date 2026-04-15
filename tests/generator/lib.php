@@ -22,8 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * PHPUnit data generator for local_recertify.
+ */
 class local_recertify_generator extends testing_module_generator {
-
     /**
      * Function to create a dummy course completion record.
      * For use with a Moodle site only.

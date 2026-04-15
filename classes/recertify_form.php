@@ -29,7 +29,6 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class local_recertify_recertify_form extends moodleform {
-
     /**
      * Defines the form fields.
      */
@@ -41,7 +40,7 @@ class local_recertify_recertify_form extends moodleform {
 
         $context = \context_course::instance($course->id);
 
-        $editoroptions = array(
+        $editoroptions = [
             'subdirs' => 0,
             'maxbytes' => 0,
             'maxfiles' => 0,
@@ -50,13 +49,13 @@ class local_recertify_recertify_form extends moodleform {
             'noclean' => 0,
             'trusttext' => 0,
             'cols' => '50',
-            'rows' => '8'
-        );
+            'rows' => '8',
+        ];
 
         $mform->addElement('checkbox', 'enable', get_string('enablerecertify', 'local_recertify'));
         $mform->addHelpButton('enable', 'enablerecertify', 'local_recertify');
 
-        $options = array('optional' => false, 'defaultunit' => 86400);
+        $options = ['optional' => false, 'defaultunit' => 86400];
         $mform->addElement('duration', 'recertifyduration', get_string('recertifyrange', 'local_recertify'), $options);
         $mform->addHelpButton('recertifyduration', 'recertifyrange', 'local_recertify');
         $mform->disabledIf('recertifyduration', 'enable', 'notchecked');
@@ -70,22 +69,29 @@ class local_recertify_recertify_form extends moodleform {
         // Email Notification settings.
         $mform->addElement('header', 'emailheader', get_string('emailrecertifytitle', 'local_recertify'));
         $mform->setExpanded('emailheader', false);
-        $mform->addElement('text', 'recertifyemailsubject', get_string('recertifyemailsubject', 'local_recertify'),
-                'size = "80"');
+        $mform->addElement(
+            'text',
+            'recertifyemailsubject',
+            get_string('recertifyemailsubject', 'local_recertify'),
+            'size = "80"'
+        );
         $mform->setType('recertifyemailsubject', PARAM_TEXT);
         $mform->addHelpButton('recertifyemailsubject', 'recertifyemailsubject', 'local_recertify');
         $mform->disabledIf('recertifyemailsubject', 'enable', 'notchecked');
         $mform->disabledIf('recertifyemailsubject', 'recertifyemailenable', 'notchecked');
         $mform->setDefault('recertifyemailsubject', $config->emailsubject);
 
-        $mform->addElement('editor', 'recertifyemailbody', get_string('recertifyemailbody', 'local_recertify'),
-            $editoroptions);
-        $mform->setDefault('recertifyemailbody', array('text' => $config->emailbody,
-            'format' => FORMAT_HTML));
+        $mform->addElement(
+            'editor',
+            'recertifyemailbody',
+            get_string('recertifyemailbody', 'local_recertify'),
+            $editoroptions
+        );
+        $mform->setDefault('recertifyemailbody', ['text' => $config->emailbody,
+            'format' => FORMAT_HTML]);
         $mform->addHelpButton('recertifyemailbody', 'recertifyemailbody', 'local_recertify');
         $mform->disabledIf('recertifyemailbody', 'enable', 'notchecked');
         $mform->disabledIf('recertifyemailbody', 'recertifyemailenable', 'notchecked');
-
 
         // Email supervisor notification settings
         $mform->addElement('checkbox', 'supervisoremailenable', get_string('supervisoremailenable', 'local_recertify'));

@@ -51,8 +51,10 @@ if (empty($users) && empty($userid)) {
     }
 
     if (empty($users)) {
-        redirect($CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id,
-            get_string('nousersselected', 'local_recertify'));
+        redirect(
+            $CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id,
+            get_string('nousersselected', 'local_recertify')
+        );
     }
 }
 
@@ -71,8 +73,10 @@ if (empty($date)) {
     $date = time();
 }
 
-$form = new local_recertify_coursecompletion_form('editcompletion.php',
-    ['course' => $courseid, 'users' => $users, 'date' => $date]);
+$form = new local_recertify_coursecompletion_form(
+    'editcompletion.php',
+    ['course' => $courseid, 'users' => $users, 'date' => $date]
+);
 
 if ($form->is_cancelled()) {
     redirect($CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id);
@@ -88,8 +92,10 @@ if ($form->is_cancelled()) {
             }
             $ccompletion->mark_complete($data->newcompletion);
         }
-        redirect($CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id,
-            get_string('completionupdated', 'local_recertify'));
+        redirect(
+            $CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id,
+            get_string('completionupdated', 'local_recertify')
+        );
     }
 }
 

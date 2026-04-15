@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 use Behat\Gherkin\Node\TableNode;
 
 /**
@@ -23,6 +24,9 @@ use Behat\Gherkin\Node\TableNode;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * Custom Behat step definitions for local_recertify.
+ */
 class behat_local_recertify extends behat_base {
     /**
      * Set the allowed role assignments for the specified role.
@@ -40,8 +44,9 @@ class behat_local_recertify extends behat_base {
         $this->execute('behat_general::i_am_on_homepage');
 
         // Navigate to Define roles page via site administration menu.
-        $this->execute('behat_navigation::i_navigate_to_in_site_administration',
-                       $parentnodes .' > '. get_string('defineroles', 'role')
+        $this->execute(
+            'behat_navigation::i_navigate_to_in_site_administration',
+            $parentnodes . ' > ' . get_string('defineroles', 'role')
         );
 
         $this->execute('behat_general::click_link', $rolename);

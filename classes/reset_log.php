@@ -30,7 +30,6 @@ use local_recertify\event\completion_reset;
  * Handles logging and retrieval of completion reset events.
  */
 class reset_log {
-
     /**
      * Stores the reset event data.
      *
@@ -66,7 +65,8 @@ class reset_log {
     ): \DateTime {
         global $DB;
 
-        $lasttimereset = $DB->get_field_sql("
+        $lasttimereset = $DB->get_field_sql(
+            "
             SELECT timecreated
               FROM {local_recertify_reset_log}
              WHERE userid = :userid

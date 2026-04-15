@@ -30,33 +30,56 @@ if ($hassiteconfig) {
     $settings = new admin_settingpage('local_recertify', new lang_string('defaultsettings', 'local_recertify'));
     $ADMIN->add('localplugins', $settings);
 
-    $settings->add(new admin_setting_configduration('local_recertify/duration',
+    $settings->add(new admin_setting_configduration(
+        'local_recertify/duration',
         new lang_string('recertifyrange', 'local_recertify'),
-        new lang_string('recertifyrange_help', 'local_recertify'), YEARSECS, PARAM_INT));
+        new lang_string('recertifyrange_help', 'local_recertify'),
+        YEARSECS,
+        PARAM_INT
+    ));
 
-    $settings->add(new admin_setting_configcheckbox('local_recertify/emailenable',
+    $settings->add(new admin_setting_configcheckbox(
+        'local_recertify/emailenable',
         new lang_string('recertifyemailenable', 'local_recertify'),
-        new lang_string('recertifyemailenable_help', 'local_recertify'), 1));
+        new lang_string('recertifyemailenable_help', 'local_recertify'),
+        1
+    ));
 
-    $settings->add(new admin_setting_configtext('local_recertify/emailsubject',
+    $settings->add(new admin_setting_configtext(
+        'local_recertify/emailsubject',
         new lang_string('recertifyemailsubject', 'local_recertify'),
-        new lang_string('recertifyemailsubject_help', 'local_recertify'), '', PARAM_TEXT));
+        new lang_string('recertifyemailsubject_help', 'local_recertify'),
+        '',
+        PARAM_TEXT
+    ));
 
-    $settings->add(new admin_setting_confightmleditor('local_recertify/emailbody',
+    $settings->add(new admin_setting_confightmleditor(
+        'local_recertify/emailbody',
         new lang_string('recertifyemailbody', 'local_recertify'),
-        new lang_string('recertifyemailbody_help', 'local_recertify'), ''));
+        new lang_string('recertifyemailbody_help', 'local_recertify'),
+        ''
+    ));
 
-    $settings->add(new admin_setting_configcheckbox('local_recertify/deletegradedata',
+    $settings->add(new admin_setting_configcheckbox(
+        'local_recertify/deletegradedata',
         new lang_string('deletegradedata', 'local_recertify'),
-        new lang_string('deletegradedata_help', 'local_recertify'), 1));
+        new lang_string('deletegradedata_help', 'local_recertify'),
+        1
+    ));
 
-    $settings->add(new admin_setting_configcheckbox('local_recertify/archivecompletiondata',
+    $settings->add(new admin_setting_configcheckbox(
+        'local_recertify/archivecompletiondata',
         new lang_string('archivecompletiondata', 'local_recertify'),
-        new lang_string('archivecompletiondata_help', 'local_recertify'), 1));
+        new lang_string('archivecompletiondata_help', 'local_recertify'),
+        1
+    ));
 
-    $settings->add(new admin_setting_configcheckbox('local_recertify/forcearchivecompletiondata',
+    $settings->add(new admin_setting_configcheckbox(
+        'local_recertify/forcearchivecompletiondata',
         new lang_string('forcearchivecompletiondata', 'local_recertify'),
-        new lang_string('forcearchivecompletiondata_help', 'local_recertify'), 0));
+        new lang_string('forcearchivecompletiondata_help', 'local_recertify'),
+        0
+    ));
 
     $roles = get_roles_for_contextlevels(CONTEXT_USER);
     $names = role_get_names();
@@ -66,11 +89,13 @@ if ($hassiteconfig) {
     }
     // Sometimes there are no options.
     if ($options) {
-        $settings->add(new admin_setting_configselect('local_recertify/supervisorrole',
+        $settings->add(new admin_setting_configselect(
+            'local_recertify/supervisorrole',
             get_string('supervisorrole', 'local_recertify'),
             get_string('supervisorrole_help', 'local_recertify'),
             null,
-            $options));
+            $options
+        ));
     } else {
         $settings->add(new admin_setting_configempty(
             'local_recertify/supervisorrole',

@@ -44,13 +44,23 @@ class mod_assign {
     public static function editingform($mform): void {
         $config = get_config('local_recertify');
 
-        $cba = array();
-        $cba[] = $mform->createElement('radio', 'assign', '',
-            get_string('donothing', 'local_recertify'), LOCAL_RECERTIFY_NOTHING);
-        $cba[] = $mform->createElement('radio', 'assign', '',
-            get_string('extraattempt', 'local_recertify'), LOCAL_RECERTIFY_EXTRAATTEMPT);
+        $cba = [];
+        $cba[] = $mform->createElement(
+            'radio',
+            'assign',
+            '',
+            get_string('donothing', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING
+        );
+        $cba[] = $mform->createElement(
+            'radio',
+            'assign',
+            '',
+            get_string('extraattempt', 'local_recertify'),
+            LOCAL_RECERTIFY_EXTRAATTEMPT
+        );
         $cba[] = $mform->createElement('checkbox', 'assignevent', '', get_string('assignevent', 'local_recertify'));
-        $mform->addGroup($cba, 'assign', get_string('assignattempts', 'local_recertify'), array(' '), false);
+        $mform->addGroup($cba, 'assign', get_string('assignattempts', 'local_recertify'), [' '], false);
         $mform->addHelpButton('assign', 'assignattempts', 'local_recertify');
 
         $mform->setDefault('assign', $config->assignattempts);
@@ -65,16 +75,23 @@ class mod_assign {
      * @param admin_settingpage $settings
      */
     public static function settings($settings) {
-        $choices = array(LOCAL_RECERTIFY_NOTHING => new lang_string('donothing', 'local_recertify'),
-            LOCAL_RECERTIFY_EXTRAATTEMPT => new lang_string('extraattempt', 'local_recertify'));
+        $choices = [LOCAL_RECERTIFY_NOTHING => new lang_string('donothing', 'local_recertify'),
+            LOCAL_RECERTIFY_EXTRAATTEMPT => new lang_string('extraattempt', 'local_recertify')];
 
-        $settings->add(new \admin_setting_configselect('local_recertify/assignattempts',
+        $settings->add(new \admin_setting_configselect(
+            'local_recertify/assignattempts',
             new lang_string('assignattempts', 'local_recertify'),
-            new lang_string('assignattempts_help', 'local_recertify'), LOCAL_RECERTIFY_NOTHING, $choices));
+            new lang_string('assignattempts_help', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING,
+            $choices
+        ));
 
-        $settings->add(new \admin_setting_configcheckbox('local_recertify/assignevent',
+        $settings->add(new \admin_setting_configcheckbox(
+            'local_recertify/assignevent',
             new lang_string('assignevent', 'local_recertify'),
-            '', 0));
+            '',
+            0
+        ));
     }
 
     /**
@@ -92,7 +109,7 @@ class mod_assign {
                       FROM {assign} a
                       JOIN {assign_submission} s ON a.id = s.assignment
                      WHERE a.course = ? AND s.userid = ?";
-            $assigns = $DB->get_recordset_sql($sql, array($course->id, $userid));
+            $assigns = $DB->get_recordset_sql($sql, [$course->id, $userid]);
             $nopermissions = false;
             foreach ($assigns as $assign) {
                 $cm = get_coursemodule_from_instance('assign', $assign->id);

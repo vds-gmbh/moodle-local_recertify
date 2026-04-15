@@ -41,22 +41,35 @@ class mod_lti {
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function editingform($mform) : void {
+    public static function editingform($mform): void {
         if (!enrol_is_enabled('lti')) {
             return;
         }
 
         $options = [];
-        $options[] = $mform->createElement('radio', 'lti', '',
-            get_string('donothing', 'local_recertify'), LOCAL_RECERTIFY_NOTHING);
-        $options[] = $mform->createElement('radio', 'lti', '',
-            get_string('resetlti', 'local_recertify'), LOCAL_RECERTIFY_DELETE);
+        $options[] = $mform->createElement(
+            'radio',
+            'lti',
+            '',
+            get_string('donothing', 'local_recertify'),
+            LOCAL_RECERTIFY_NOTHING
+        );
+        $options[] = $mform->createElement(
+            'radio',
+            'lti',
+            '',
+            get_string('resetlti', 'local_recertify'),
+            LOCAL_RECERTIFY_DELETE
+        );
 
         $mform->addGroup($options, 'lti', get_string('resetltis', 'local_recertify'), [' '], false);
         $mform->addHelpButton('lti', 'resetltis', 'local_recertify');
 
-        $mform->addElement('checkbox', 'archivelti',
-            get_string('archive', 'local_recertify'));
+        $mform->addElement(
+            'checkbox',
+            'archivelti',
+            get_string('archive', 'local_recertify')
+        );
         $mform->setDefault('archivelti', get_config('local_recertify', 'archivelti'));
 
         $mform->disabledIf('lti', 'enable', 'notchecked');
@@ -70,7 +83,6 @@ class mod_lti {
      * @param admin_settingpage $settings
      */
     public static function settings($settings) {
-
     }
 
     /**
@@ -83,7 +95,7 @@ class mod_lti {
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function reset(int $userid, \stdClass $course, \stdClass $config) : void {
+    public static function reset(int $userid, \stdClass $course, \stdClass $config): void {
         global $DB;
 
         if (empty($config->lti)) {
@@ -96,14 +108,13 @@ class mod_lti {
         }
 
         $context = \context_course::instance($course->id);
-        $tools = $DB->get_records('enrol_lti_tools', ['contextid' => $context->id] , '' , 'id');
+        $tools = $DB->get_records('enrol_lti_tools', ['contextid' => $context->id], '', 'id');
 
         if (empty($tools)) {
             return;
         }
 
         foreach ($tools as $tool) {
-
             $params = [
                 'userid' => $userid,
                 'toolid' => $tool->id,

@@ -23,26 +23,26 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot.'/user/lib.php');
-require_once($CFG->libdir.'/formslib.php');
-require_once($CFG->dirroot.'/local/recertify/locallib.php');
-require_once($CFG->dirroot.'/course/lib.php');
-require_once($CFG->libdir.'/completionlib.php');
-require_once($CFG->libdir.'/gradelib.php');
+require_once($CFG->dirroot . '/user/lib.php');
+require_once($CFG->libdir . '/formslib.php');
+require_once($CFG->dirroot . '/local/recertify/locallib.php');
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->libdir . '/completionlib.php');
+require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 
 $courseid = required_param('id', PARAM_INT);
 $userid   = optional_param('user', 0, PARAM_INT);
-$users   = optional_param_array('users', array(), PARAM_INT);
+$users   = optional_param_array('users', [], PARAM_INT);
 
-$course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 require_login($course);
 
 $context = context_course::instance($course->id);
 require_capability('local/recertify:manage', $context);
 
-$PAGE->set_url('/local/recertify/editcompletion.php', array('id' => $course->id));
+$PAGE->set_url('/local/recertify/editcompletion.php', ['id' => $course->id]);
 if (empty($users) && empty($userid)) {
     // The first time list hack.
     if ($post = data_submitted()) {
@@ -53,19 +53,20 @@ if (empty($users) && empty($userid)) {
         }
     }
     if (empty($users)) {
-        redirect($CFG->wwwroot.'/local/recertify/participants.php?id='.$course->id,
-            get_string('nousersselected', 'local_recertify'));
+        redirect(
+            $CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id,
+            get_string('nousersselected', 'local_recertify')
+        );
     }
-
 }
 if (empty($users)) {
-    $users = array();
+    $users = [];
     $users[] = $userid;
     // Get this users current completion date and use that in the form.
-    $params = array(
+    $params = [
         'userid'    => $userid,
-        'course'    => $courseid
-    );
+        'course'    => $courseid,
+    ];
     $ccompletion = new \completion_completion($params);
     if ($ccompletion->is_complete()) {
         $date = $ccompletion->timecompleted;
@@ -79,7 +80,7 @@ if (empty($date)) {
 // Function to reset completion for $users.
 $resetcompletion = optional_param('reset_completion', 0, PARAM_BOOL);
 if ($resetcompletion && confirm_sesskey()) {
-    $config = $DB->get_records_menu('local_recertify_config', array('course' => $course->id), '', 'name, value');
+    $config = $DB->get_records_menu('local_recertify_config', ['course' => $course->id], '', 'name, value');
     $config = (object) $config;
 
     foreach ($users as $user) {
@@ -88,26 +89,29 @@ if ($resetcompletion && confirm_sesskey()) {
         $errors = $reset->reset_user($userid, $course, $config);
     }
 
-    redirect($CFG->wwwroot.'/local/recertify/participants.php?id='.$course->id,
-        get_string('completionreset', 'local_recertify'));
+    redirect(
+        $CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id,
+        get_string('completionreset', 'local_recertify')
+    );
 }
 
 
 
-$form = new local_recertify_coursecompletion_form('editcompletion.php',
-    array('course' => $courseid, 'users' => $users, 'date' => $date));
+$form = new local_recertify_coursecompletion_form(
+    'editcompletion.php',
+    ['course' => $courseid, 'users' => $users, 'date' => $date]
+);
 
 if ($form->is_cancelled()) {
-    redirect($CFG->wwwroot.'/local/recertify/participants.php?id='.$course->id);
-
+    redirect($CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id);
 } else if ($data = $form->get_data()) {
     if (!empty($data->newcompletion)) {
         // Update course completion.
         foreach ($users as $user) {
-            $params = array(
+            $params = [
                 'userid'    => $user,
-                'course'    => $courseid
-            );
+                'course'    => $courseid,
+            ];
             $ccompletion = new \completion_completion($params);
             if ($ccompletion->is_complete()) {
                 // If we already have a completion date, clear it first so that mark_complete works.
@@ -115,8 +119,10 @@ if ($form->is_cancelled()) {
             }
             $ccompletion->mark_complete($data->newcompletion);
         }
-        redirect($CFG->wwwroot.'/local/recertify/participants.php?id='.$course->id,
-            get_string('completionupdated', 'local_recertify'));
+        redirect(
+            $CFG->wwwroot . '/local/recertify/participants.php?id=' . $course->id,
+            get_string('completionupdated', 'local_recertify')
+        );
     }
 }
 

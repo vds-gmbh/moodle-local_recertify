@@ -23,10 +23,10 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot.'/local/recertify/locallib.php');
-require_once($CFG->dirroot.'/course/lib.php');
-require_once($CFG->libdir.'/completionlib.php');
-require_once($CFG->libdir.'/gradelib.php');
+require_once($CFG->dirroot . '/local/recertify/locallib.php');
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->libdir . '/completionlib.php');
+require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
 
@@ -38,7 +38,7 @@ if ($id == SITEID) {
     // Don't allow editing of 'site course' using this form.
     throw new moodle_exception('cannoteditsiteform');
 }
-$course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 require_login($course);
 
 if (empty($userid)) {
@@ -48,13 +48,13 @@ if (empty($userid)) {
 $context = context_course::instance($course->id);
 if ($USER->id <> $userid) {
     require_capability('local/recertify:manage', $context);
-    $user = $DB->get_record('user', array('id' => $userid));
+    $user = $DB->get_record('user', ['id' => $userid]);
 } else {
     require_capability('local/recertify:resetmycompletion', $context);
     $user = $USER;
 }
 
-$config = $DB->get_records_menu('local_recertify_config', array('course' => $course->id), '', 'name, value');
+$config = $DB->get_records_menu('local_recertify_config', ['course' => $course->id], '', 'name, value');
 $config = (object) $config;
 
 if (empty($config->enable)) {
@@ -65,21 +65,20 @@ if (!empty($confirm) && confirm_sesskey()) {
     $reset = new local_recertify\task\check_recertify();
     $errors = $reset->reset_user($userid, $course, $config);
     if ($USER->id <> $userid) {
-        $returnurl = new moodle_url('/local/recertify/participants.php', array('id' => $course->id));
+        $returnurl = new moodle_url('/local/recertify/participants.php', ['id' => $course->id]);
     } else {
         $returnurl = course_get_url($course);
     }
     if (!empty($errors)) {
-        redirect($returnurl, explode(',', $errors), '',  \core\output\notification::NOTIFY_WARNING);
+        redirect($returnurl, explode(',', $errors), '', \core\output\notification::NOTIFY_WARNING);
     } else {
         redirect($returnurl, get_string('completionresetuser', 'local_recertify', fullname($user)));
     }
-
 }
 
 // Set up the page.
 $PAGE->set_course($course);
-$PAGE->set_url('/local/recertify/resetcompletion.php', array('id' => $course->id));
+$PAGE->set_url('/local/recertify/resetcompletion.php', ['id' => $course->id]);
 $PAGE->set_title($course->shortname);
 $PAGE->set_heading($course->fullname);
 

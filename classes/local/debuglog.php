@@ -27,7 +27,6 @@ namespace local_recertify\local;
 defined('MOODLE_INTERNAL') || die();
 
 class debuglog {
-
     public static function add($msg, $showusage = false) {
         // Remove the '//' from the start of the next line to turn off all debugging
         // return;
@@ -38,7 +37,7 @@ class debuglog {
             $starttime = microtime(true);
         }
 
-        $fp = fopen($CFG->dataroot.'/debug.log', 'a');
+        $fp = fopen($CFG->dataroot . '/debug.log', 'a');
 
         if (!$fp) {
             return;
@@ -46,13 +45,13 @@ class debuglog {
 
         $usage = '';
         if ($showusage) {
-            $memory = sprintf('%.2f', (memory_get_usage() / (1024.0 * 1024.0))).'M';
-            $peak = sprintf('%.2f', (memory_get_peak_usage() / (1024.0 * 1024.0))).'M';
-            $time = sprintf('%.1f', microtime(true) - $starttime).'s';
+            $memory = sprintf('%.2f', (memory_get_usage() / (1024.0 * 1024.0))) . 'M';
+            $peak = sprintf('%.2f', (memory_get_peak_usage() / (1024.0 * 1024.0))) . 'M';
+            $time = sprintf('%.1f', microtime(true) - $starttime) . 's';
             $usage = " - memory: {$memory} (peak: {$peak}) time: {$time}";
         }
 
-        fwrite($fp, date('j M Y H:i:s').' - '.$msg.$usage."\n");
+        fwrite($fp, date('j M Y H:i:s') . ' - ' . $msg . $usage . "\n");
         fclose($fp);
     }
 
@@ -78,9 +77,9 @@ class debuglog {
         $lastline = array_shift($backtrace);
         $filename = str_replace($CFG->dirroot, '', $lastline['file']);
 
-        $msg = $filename.' ('.$lastline['line'].')';
+        $msg = $filename . ' (' . $lastline['line'] . ')';
         if ($info) {
-            $msg .= ' '.$info;
+            $msg .= ' ' . $info;
         }
 
         self::add($msg, true);
@@ -98,11 +97,11 @@ class debuglog {
         $output = "Backtrace: \n";
         $trace = debug_backtrace();
         foreach ($trace as $depth => $details) {
-            $output .= $depth.': ';
-            $output .= $details['file'].' - ';
-            $output .= 'line '.$details['line'].': ';
+            $output .= $depth . ': ';
+            $output .= $details['file'] . ' - ';
+            $output .= 'line ' . $details['line'] . ': ';
             if ($details['function']) {
-                $output .= $details['function'].'()';
+                $output .= $details['function'] . '()';
             }
             $output .= "\n";
         }
@@ -111,7 +110,7 @@ class debuglog {
 
     public static function output(): void {
         global $CFG;
-        $filename = $CFG->dataroot.'/debug.log';
+        $filename = $CFG->dataroot . '/debug.log';
         if (!file_exists($filename)) {
             echo "No log found";
             return;
@@ -123,7 +122,7 @@ class debuglog {
 
     public static function clear(): void {
         global $CFG;
-        $filename = $CFG->dataroot.'/debug.log';
+        $filename = $CFG->dataroot . '/debug.log';
         @unlink($filename);
     }
 }

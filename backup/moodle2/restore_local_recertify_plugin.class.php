@@ -34,18 +34,20 @@ class restore_local_recertify_plugin extends restore_local_plugin {
      * Returns the paths to be handled by the plugin at course level.
      */
     protected function define_course_plugin_structure() {
-        $paths = array();
+        $paths = [];
 
         $elepath = $this->get_pathfor('/');
-        $paths[] = new restore_path_element('recertify', $elepath.'/recertify_config');
-        $paths[] = new restore_path_element('recertify_cc', $elepath.'/course_completion/coursecompletion');
-        $paths[] = new restore_path_element('recertify_cc_cc',
-            $elepath.'/course_completion/course_completion_crit_completions/course_completion_crit_compl');
-        $paths[] = new restore_path_element('recertify_completion', $elepath.'/course_completion/completions/completion');
-        $paths[] = new restore_path_element('recertify_qa', $elepath.'/quizattempts/attempt');
-        $paths[] = new restore_path_element('recertify_qg', $elepath.'/quizgrades/grade');
-        $paths[] = new restore_path_element('recertify_sst', $elepath.'/scormtracks/sco_track');
-        $paths[] = new restore_path_element('recertify_cha', $elepath.'/choiceanswers/choiceanswer');
+        $paths[] = new restore_path_element('recertify', $elepath . '/recertify_config');
+        $paths[] = new restore_path_element('recertify_cc', $elepath . '/course_completion/coursecompletion');
+        $paths[] = new restore_path_element(
+            'recertify_cc_cc',
+            $elepath . '/course_completion/course_completion_crit_completions/course_completion_crit_compl'
+        );
+        $paths[] = new restore_path_element('recertify_completion', $elepath . '/course_completion/completions/completion');
+        $paths[] = new restore_path_element('recertify_qa', $elepath . '/quizattempts/attempt');
+        $paths[] = new restore_path_element('recertify_qg', $elepath . '/quizgrades/grade');
+        $paths[] = new restore_path_element('recertify_sst', $elepath . '/scormtracks/sco_track');
+        $paths[] = new restore_path_element('recertify_cha', $elepath . '/choiceanswers/choiceanswer');
 
         return $paths;
     }
@@ -168,7 +170,7 @@ class restore_local_recertify_plugin extends restore_local_plugin {
     protected function after_restore_course() {
         global $DB;
         // Fix local_recertify_cmc records.
-        $rcm = $DB->get_recordset('local_recertify_cmc', array('course' => $this->task->get_courseid()));
+        $rcm = $DB->get_recordset('local_recertify_cmc', ['course' => $this->task->get_courseid()]);
         foreach ($rcm as $rc) {
             $rc->coursemoduleid = $this->get_mappingid('course_module', $rc->coursemoduleid);
             $DB->update_record('local_recertify_cmc', $rc);
@@ -176,7 +178,7 @@ class restore_local_recertify_plugin extends restore_local_plugin {
         $rcm->close();
 
         // Fix SCORM tracks.
-        $rcm = $DB->get_recordset('local_recertify_sst', array('course' => $this->task->get_courseid()));
+        $rcm = $DB->get_recordset('local_recertify_sst', ['course' => $this->task->get_courseid()]);
         foreach ($rcm as $rc) {
             $rc->scormid = $this->get_mappingid('scorm', $rc->scormid);
             $rc->scoid = $this->get_mappingid('scorm_sco', $rc->scoid);
@@ -185,14 +187,14 @@ class restore_local_recertify_plugin extends restore_local_plugin {
         $rcm->close();
 
         // Fix Quiz.
-        $rcm = $DB->get_recordset('local_recertify_qg', array('course' => $this->task->get_courseid()));
+        $rcm = $DB->get_recordset('local_recertify_qg', ['course' => $this->task->get_courseid()]);
         foreach ($rcm as $rc) {
             $rc->quiz = $this->get_mappingid('quiz', $rc->quiz);
             $DB->update_record('local_recertify_qg', $rc);
         }
         $rcm->close();
 
-        $rcm = $DB->get_recordset('local_recertify_qa', array('course' => $this->task->get_courseid()));
+        $rcm = $DB->get_recordset('local_recertify_qa', ['course' => $this->task->get_courseid()]);
         foreach ($rcm as $rc) {
             $rc->quiz = $this->get_mappingid('quiz', $rc->quiz);
             $rc->uniqueid = $this->get_mappingid('question_usage', $rc->uniqueid);
@@ -201,12 +203,11 @@ class restore_local_recertify_plugin extends restore_local_plugin {
         $rcm->close();
 
         // Fix Choice answers.
-        $rcm = $DB->get_recordset('local_recertify_cha', array('course' => $this->task->get_courseid()));
+        $rcm = $DB->get_recordset('local_recertify_cha', ['course' => $this->task->get_courseid()]);
         foreach ($rcm as $rc) {
             $rc->choiceid = $this->get_mappingid('choice', $rc->choiceid);
             $DB->update_record('local_recertify_cha', $rc);
         }
         $rcm->close();
-
     }
 }
