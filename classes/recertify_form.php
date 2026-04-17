@@ -95,7 +95,7 @@ class local_recertify_recertify_form extends moodleform {
         $mform->disabledIf('recertifyemailbody', 'enable', 'notchecked');
         $mform->disabledIf('recertifyemailbody', 'recertifyemailenable', 'notchecked');
 
-        // Email supervisor notification settings
+        // Email supervisor notification settings.
         $mform->addElement('checkbox', 'supervisoremailenable', get_string('supervisoremailenable', 'local_recertify'));
         $mform->setDefault('supervisoremailenable', 1);
         $mform->addHelpButton('supervisoremailenable', 'supervisoremailenable', 'local_recertify');

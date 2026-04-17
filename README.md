@@ -1,40 +1,80 @@
-The recertify plugin is supported and maintained by Dan Marsden
+# Course Recertify (local_recertify)
 
-Branches
---------
-The git branches here support the following versions.
+A Moodle plugin for automatic course re-certification by resetting completion
+data after a configurable time period and notifying learners and supervisors.
 
-| Moodle version     | Branch      |
-| ----------------- | ----------- |
-| Mooodle 3.5 - 3.7  | MOODLE_37_STABLE |
-| Mooodle 3.8  | MOODLE_38_STABLE |
-| Mooodle 3.9 - 3.10  | MOODLE_39_STABLE |
-| Moodle 3.11 and higher | MOODLE_311_STABLE |
+## Supported Moodle Versions
 
-This plugin adds course level settings for recertify - clearing all course, activity completion and all other related moodle plugins data for a user based on the duration set notifying the student they need to return to the course and recomplete it.
+| Moodle Version | Branch |
+| -------------- | ------ |
+| Moodle 4.5+    | main   |
 
-This plugin could be used to facilitate annual re-certification.
+## Description
 
-The following information is cleared from the course during recertify:
-* All activity grades cleared (and saved to standard grade history tables.)
-* All activity completion and course completion flags removed. (with the option to archive this information)
+This plugin adds course-level settings for recertification -- clearing course
+and activity completion data for a user after a defined duration, notifying the
+student to return and re-complete the course. It is designed for annual
+re-certification workflows.
 
-The following activities have extra support:
-1) Quiz
-You can choose to delete all existing quiz attempt data with the option to archive the information or,
-you can keep the existing attempts and give the student the ability to add new attempts.
+The following data is cleared during recertification:
+- All activity grades (saved to standard grade history tables).
+- All activity and course completion flags (with optional archiving).
 
-2) SCORM
-You can choose to delete all existing SCORM attempt data with the option to archive the information.
+### Supported Activity Modules
 
-3) Assignment
-You can choose to give the student another attempt (if the assignment is configured to allow reopening and the maximum number of attempts has not been reached.
+- **Quiz** -- Delete or keep existing attempts; optional archiving.
+- **SCORM** -- Delete existing attempts; optional archiving.
+- **Assignment** -- Grant additional attempts if configured.
+- **Custom Certificate** -- Archive issued certificates.
+- **LTI** -- Archive LTI access data.
+- **Choice** -- Archive choice answers.
+- **Questionnaire** -- Archive questionnaire responses.
+- **Pulse** -- Clear activity completion.
 
-If a user has already completed the course, and a teacher performs a grading action on an assignment, you can choose to have the course completion date updated at the same time.
+### Supervisor Notifications
 
-Other plugins that store user data will have the activity completion data, and all related data reset, but may require manual intervention as they are not yet supported fully.
-Get in touch privately if you would like to fund support for other activities with user data.
+Supervisors assigned via a configurable role in user contexts receive
+periodic email reports about learner progress and overdue recertifications.
 
+## Installation
 
-For more documentation on this plugin please see:
-https://github.com/danmarsden/moodle-local_recertify/wiki
+### Via Git
+
+    cd /path/to/moodle
+    git clone https://github.com/vds-gmbh/moodle-local_recertify.git local/recertify
+
+### Manually
+
+1. Download the ZIP and extract it.
+2. Copy the `recertify` folder to `<moodle-root>/local/recertify`.
+3. Visit Site Administration > Notifications to complete installation.
+
+## Migration from local_recompletion
+
+If `local_recompletion` or `local_recompletionextension` is present, the
+install hook automatically migrates archive tables, course configuration,
+plugin settings, and the reset log. After migration, the predecessor plugins
+can be safely uninstalled via Site Administration > Plugins > Plugins overview.
+
+## Configuration
+
+After installation, visit Site Administration > Plugins > Local plugins >
+Course recertify to configure global settings (supervisor role, email
+templates). Per-course settings are available in the course administration
+menu.
+
+## Requirements
+
+- Moodle 4.5 or higher
+- PHP 8.1 or higher
+
+## License
+
+Licensed under the [GNU GPL v3 or later](https://www.gnu.org/copyleft/gpl.html).
+
+## Credits
+
+- Based on [local_recompletion](https://moodle.org/plugins/local_recompletion)
+  by Dan Marsden and contributors at Catalyst IT.
+- Supervisor notification and email features by Philipp Steingrebe.
+- Maintained by [VdS Schadenverhütung GmbH](https://github.com/vds-gmbh).

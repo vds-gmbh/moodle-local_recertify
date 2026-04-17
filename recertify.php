@@ -71,9 +71,6 @@ if (!empty(get_config('local_recertify', 'forcearchivecompletiondata'))) {
 
 $setnames = ['enable', 'recertifyduration', 'deletegradedata', 'archivecompletiondata',
     'recertifyemailenable', 'recertifyemailsubject', 'recertifyemailbody',
-
-
-// 'recertifyemailbody_format', 'assignevent');
     'recertifyemailbody_format', 'assignevent', 'supervisoremailenable'];
 
 

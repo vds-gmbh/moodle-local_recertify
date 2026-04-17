@@ -15,23 +15,33 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Debugging class
+ * Debug logging utility for development and troubleshooting.
  *
- * @package   local_recertify
+ * @package    local_recertify
  * @copyright  2023 Synergy Learning
  * @copyright  2026 onwards VdS Schadenverhütung
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_recertify\local;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Debug logging utility for development and troubleshooting.
+ *
+ * @package    local_recertify
+ * @copyright  2023 Synergy Learning
+ * @copyright  2026 onwards VdS Schadenverhütung
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class debuglog {
+    /**
+     * Write a message to the debug log file.
+     *
+     * @param string $msg The message to log.
+     * @param bool $showusage Whether to append memory and timing info.
+     * @return void
+     */
     public static function add($msg, $showusage = false) {
-        // Remove the '//' from the start of the next line to turn off all debugging
-        // return;
-
         global $CFG;
         static $starttime = null;
         if (is_null($starttime)) {
@@ -56,6 +66,12 @@ class debuglog {
         fclose($fp);
     }
 
+    /**
+     * Log memory and timing usage information if debug logging is active.
+     *
+     * @param string|null $info Optional context label.
+     * @return void
+     */
     public static function usage($info = null) {
         global $CFG, $SESSION;
         static $logon = null;
@@ -86,14 +102,21 @@ class debuglog {
         self::add($msg, true);
     }
 
-    public static function var_dump($var) {
-        ob_start();
-        print_r($var);
-        $out = ob_get_clean();
-
-        self::add($out);
+    /**
+     * Dump a variable to the debug log.
+     *
+     * @param mixed $var The variable to dump.
+     * @return void
+     */
+    public static function dump($var) {
+        self::add(var_export($var, true));
     }
 
+    /**
+     * Write a full backtrace to the debug log file.
+     *
+     * @return void
+     */
     public static function backtrace() {
         $output = "Backtrace: \n";
         $trace = debug_backtrace();
@@ -109,6 +132,11 @@ class debuglog {
         self::add($output);
     }
 
+    /**
+     * Output the debug log contents to the browser.
+     *
+     * @return void
+     */
     public static function output(): void {
         global $CFG;
         $filename = $CFG->dataroot . '/debug.log';
@@ -121,6 +149,11 @@ class debuglog {
         echo '</pre>';
     }
 
+    /**
+     * Delete the debug log file.
+     *
+     * @return void
+     */
     public static function clear(): void {
         global $CFG;
         $filename = $CFG->dataroot . '/debug.log';

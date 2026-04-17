@@ -101,13 +101,6 @@ class check_recertify extends \core\task\scheduled_task {
         global $DB;
         $params = ['userid' => $userid, 'course' => $course->id];
 
-        // if (!empty(get_config('local_recertify', 'forcearchivecompletiondata')) || $config->archivecompletiondata) {
-        // $coursecompletions = $DB->get_records('course_completions', $params);
-        // $DB->insert_records('local_recertify_cc', $coursecompletions);
-        // $criteriacompletions = $DB->get_records('course_completion_crit_compl', $params);
-        // $DB->insert_records('local_recertify_cc_cc', $criteriacompletions);
-        // }
-
         $coursecompletions = $DB->get_records('course_completions', $params);
         if (!empty(get_config('local_recertify', 'forcearchivecompletiondata')) || $config->archivecompletiondata) {
             $DB->insert_records('local_recertify_cc', $coursecompletions);
@@ -116,8 +109,7 @@ class check_recertify extends \core\task\scheduled_task {
         }
         $DB->delete_records('course_completions', $params);
 
-        // $DB->delete_records('course_completions', $params);
-        // Update existing records instead of deleting them
+        // Update existing records instead of deleting them.
         foreach ($coursecompletions as $coursecompletion) {
             $coursecompletion->timeenrolled = time();
             $coursecompletion->timestarted = 0;
@@ -158,11 +150,6 @@ class check_recertify extends \core\task\scheduled_task {
         $userrecord = $DB->get_record('user', ['id' => $userid]);
         $context = \context_course::instance($course->id);
 
-        // $from = get_admin();
-        // $a = new \stdClass();
-        // $a->coursename = format_string($course->fullname, true, array('context' => $context));
-        // $a->profileurl = "$CFG->wwwroot/user/view.php?id=$userrecord->id&course=$course->id";
-        // $a->link = course_get_url($course)->out();
         $from = \core_user::get_support_user();
         $placeholder = [
                 '{$a->coursename}' => format_string($course->fullname, true, ['context' => $context]),
@@ -175,24 +162,16 @@ class check_recertify extends \core\task\scheduled_task {
                 'coursename' => $placeholder['{$a->coursename}'],
                 'link'       => $placeholder['{$a->link}'],
                 ];
-        // Mail body
-
+        // Build the mail body.
         if (trim($config->recertifyemailbody) !== '') {
-            // $message = $config->recertifyemailbody;
-            // $key = ['{$a->coursename}', '{$a->profileurl}', '{$a->link}', '{$a->fullname}', '{$a->email}'];
-            // $value = [$a->coursename, $a->profileurl, $a->link, fullname($userrecord), $userrecord->email];
-            // $message = str_replace($key, $value, $message);
-            // Message body now stored as html - some might be non-html though, so we have to handle both - not clean but it works for now.
-            // $keyhtml = ['{$a-&gt;coursename}', '{$a-&gt;profileurl}', '{$a-&gt;link}', '{$a-&gt;fullname}', '{$a-&gt;email}'];
-            // $message = str_replace($keyhtml, $value, $message);
-            // Use mail body from course
+            // Use mail body from course.
             $message = str_replace(
                 array_keys($placeholder),
                 array_values($placeholder),
                 $config->recertifyemailbody
             );
 
-            // Message body now stored as html - some might be non-html though, so we have to handle both - not clean but it works for now.
+            // Message body is stored as HTML but some might be plain text, so handle both.
             $keyhtml = ['{$a-&gt;coursename}', '{$a-&gt;profileurl}', '{$a-&gt;link}', '{$a-&gt;fullname}', '{$a-&gt;email}'];
             $message = str_replace(
                 $keyhtml,
@@ -200,10 +179,13 @@ class check_recertify extends \core\task\scheduled_task {
                 $message
             );
 
-            $messagehtml = format_text($message, FORMAT_HTML, ['context' => $context,
-
-            // 'para' => false, 'newlines' => true, 'filter' => true));
-                'para' => false, 'newlines' => false, 'filter' => false, 'noclean' => true]);
+            $messagehtml = format_text($message, FORMAT_HTML, [
+                'context' => $context,
+                'para' => false,
+                'newlines' => false,
+                'filter' => false,
+                'noclean' => true,
+            ]);
 
             $messagetext = html_to_text($messagehtml);
         } else {
@@ -211,10 +193,6 @@ class check_recertify extends \core\task\scheduled_task {
             $messagehtml = text_to_html($messagetext, null, false, true);
         }
         if (trim($config->recertifyemailsubject) !== '') {
-            // $subject = $config->recertifyemailsubject;
-            // $keysub = array('{$a->coursename}', '{$a->fullname}');
-            // $valuesub = array($a->coursename, fullname($userrecord));
-            // $subject = str_replace($keysub, $valuesub, $subject);
             $subject = str_replace(
                 array_keys($placeholder),
                 array_values($placeholder),
@@ -224,9 +202,7 @@ class check_recertify extends \core\task\scheduled_task {
             $subject = get_string('recertifyemaildefaultsubject', 'local_recertify', $a);
         }
         // Directly emailing recertify message rather than using messaging.
-
-        // email_to_user($userrecord, $from, $subject, $messagetext, $messagehtml);
-        $messagehtml = \local_recertify_recertify_emails::getEmail(
+        $messagehtml = \local_recertify_recertify_emails::get_email(
             $subject,
             $messagehtml
         );

@@ -75,12 +75,10 @@ jobs:
 
       - name: Moodle Code Checker
         if: ${{ !cancelled() }}
-        continue-on-error: true
         run: moodle-plugin-ci codechecker
 
       - name: Moodle PHPDoc Checker
         if: ${{ !cancelled() }}
-        continue-on-error: true
         run: moodle-plugin-ci phpdoc
 
       - name: Validating
@@ -101,12 +99,10 @@ jobs:
 
       - name: PHPUnit tests
         if: ${{ !cancelled() }}
-        continue-on-error: true
         run: moodle-plugin-ci phpunit --fail-on-warning
 
       - name: Privacy provider tests
         if: ${{ !cancelled() }}
-        continue-on-error: true
         run: |
           cd moodle
           vendor/bin/phpunit --fail-on-risky --disallow-test-output --filter tool_dataprivacy_metadata_registry_testcase
@@ -114,5 +110,4 @@ jobs:
 
       - name: Behat features
         if: ${{ !cancelled() }}
-        continue-on-error: true
         run: moodle-plugin-ci behat --profile chrome
