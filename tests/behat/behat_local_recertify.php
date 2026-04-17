@@ -58,8 +58,9 @@ class behat_local_recertify extends behat_base {
 
     /**
      * Inserts course completions for a user.
-     * For use with a Totara site.
+     *
      * @Given /^the following course completions exist:$/
+     * @param TableNode $table Rows with user and course columns.
      */
     public function the_following_course_completions_exist(TableNode $table) {
         global $DB;
