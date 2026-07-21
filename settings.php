@@ -105,6 +105,13 @@ if ($hassiteconfig) {
         ));
     }
 
+    $settings->add(new admin_setting_configtext(
+        'local_recertify/noemailprofilefield',
+        new lang_string('noemailprofilefield', 'local_recertify'),
+        new lang_string('noemailprofilefield_help', 'local_recertify'),
+        '',
+        PARAM_ALPHANUMEXT
+    ));
 
     $plugins = local_recertify_get_supported_plugins();
     foreach ($plugins as $plugin) {

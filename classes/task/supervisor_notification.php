@@ -34,6 +34,12 @@ namespace local_recertify\task;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class supervisor_notification extends \core\task\scheduled_task {
+    /** @var array<int, string> Plaintext passwords generated during the current run, keyed by user id. */
+    private $newpasswords = [];
+
+    /** @var int|null Cached id of the configured "no email" custom user profile field. */
+    private $noemailfieldid = null;
+
     /**
      * Generate a random password with specified character sets.
      *
@@ -114,6 +120,11 @@ class supervisor_notification extends \core\task\scheduled_task {
         if (!\completion_info::is_enabled_for_site()) {
             return;
         }
+
+        // Reset per-run state so password resets are de-duplicated across all
+        // supervisors and courses processed in this run.
+        $this->newpasswords = [];
+        $this->noemailfieldid = $this->resolve_noemail_fieldid();
 
         try {
             $coursessql = "SELECT c.id
@@ -310,7 +321,7 @@ HTML;
                 $colclassname = 'text-success';
             }
 
-            $email = preg_match('/^random-([0-9a-z]+)@vds\.de$/i', $user->email) ? null : $user->email;
+            $email = $this->user_has_no_email($user->id) ? null : $user->email;
 
             if (!$timecompleted && $email) {
                 $overdueusers[] = $user;
@@ -351,16 +362,12 @@ HTML;
 HTML;
 
             // Set new password for users without email if attempt is not completed and not started.
+            // The password is generated and persisted only once per user per task run, so every
+            // supervisor (and every course) sees the same valid credentials in their report.
             if (!$email && !$timecompleted && !$timestarted) {
-                $newpassword = self::get_password();
-                $fulluser = $DB->get_record('user', ['id' => $user->id]);
-                $fulluser->password = $newpassword;
-                \set_user_preference('auth_forcepasswordchange', 1, $fulluser);
-                \user_update_user($fulluser, true, false);
-
                 $passwordresetusers[] = [
                     'user'     => $user,
-                    'password' => $newpassword,
+                    'password' => $this->reset_password_for($user),
                 ];
             }
         }
@@ -480,6 +487,67 @@ HTML;
         } catch (\Exception $error) {
             debugging('Notification to user failed: ' . $error->getMessage(), DEBUG_DEVELOPER);
         }
+    }
+
+    /**
+     * Resolve the configured no-email custom profile field to its database id.
+     *
+     * @return int|null Field id or null if the setting is empty or the field does not exist.
+     */
+    private function resolve_noemail_fieldid(): ?int {
+        global $DB;
+        $shortname = get_config('local_recertify', 'noemailprofilefield');
+        if (empty($shortname)) {
+            return null;
+        }
+        $id = $DB->get_field('user_info_field', 'id', ['shortname' => $shortname]);
+        return $id ? (int) $id : null;
+    }
+
+    /**
+     * Decide whether a user is flagged as having no real email address.
+     *
+     * Uses the custom user profile field configured under
+     * local_recertify/noemailprofilefield. A non-empty, non-zero value is
+     * treated as "no email".
+     *
+     * @param int $userid User id.
+     * @return bool
+     */
+    private function user_has_no_email(int $userid): bool {
+        global $DB;
+        if ($this->noemailfieldid === null) {
+            return false;
+        }
+        $value = $DB->get_field('user_info_data', 'data', [
+            'userid' => $userid,
+            'fieldid' => $this->noemailfieldid,
+        ]);
+        return $value !== false && $value !== '' && $value !== '0';
+    }
+
+    /**
+     * Reset the password for a user once per task run and return the plaintext.
+     *
+     * Subsequent calls for the same user return the cached password without
+     * touching the database, so multiple supervisor reports across courses
+     * stay consistent.
+     *
+     * @param \stdClass $user User record (id is sufficient).
+     * @return string Newly generated plaintext password.
+     */
+    private function reset_password_for(\stdClass $user): string {
+        global $DB;
+        if (isset($this->newpasswords[$user->id])) {
+            return $this->newpasswords[$user->id];
+        }
+        $newpassword = self::get_password();
+        $fulluser = $DB->get_record('user', ['id' => $user->id]);
+        $fulluser->password = $newpassword;
+        \set_user_preference('auth_forcepasswordchange', 1, $fulluser);
+        \user_update_user($fulluser, true, false);
+        $this->newpasswords[$user->id] = $newpassword;
+        return $newpassword;
     }
 
     /**

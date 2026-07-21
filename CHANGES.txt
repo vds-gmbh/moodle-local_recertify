@@ -2,6 +2,14 @@ Release notes
 -------------
 
 Date          Version   Comment
+2026/04/29    1.2.0     Supervisor notification: deduplicate password resets per
+                        user per task run so multiple supervisors and multiple
+                        courses report the same valid credentials (fixes a race
+                        where only the last-generated password actually worked).
+                        Replace hardcoded random-...@vds.de email regex with a
+                        configurable custom user profile field
+                        (local_recertify/noemailprofilefield) for detecting
+                        users without a real email address.
 2026/04/17    1.1.0     Submission readiness: fix all 63 codechecker errors and
                         42 warnings (variable renames, docblocks, inline comments,
                         commented-out code removal). Replace MySQL-specific
