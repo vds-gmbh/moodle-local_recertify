@@ -38,18 +38,24 @@ class restore_local_recertify_plugin extends restore_local_plugin {
     protected function define_course_plugin_structure() {
         $paths = [];
 
+        // Element names are prefixed with "recertify_" to stay unique across all local
+        // plugins in a course backup (see the matching note in the backup class). These
+        // paths must mirror those element names exactly.
         $elepath = $this->get_pathfor('/');
         $paths[] = new restore_path_element('recertify', $elepath . '/recertify_config');
-        $paths[] = new restore_path_element('recertify_cc', $elepath . '/course_completion/coursecompletion');
+        $paths[] = new restore_path_element('recertify_cc', $elepath . '/recertify_course_completion/recertify_coursecompletion');
         $paths[] = new restore_path_element(
             'recertify_cc_cc',
-            $elepath . '/course_completion/course_completion_crit_completions/course_completion_crit_compl'
+            $elepath . '/recertify_course_completion/recertify_cc_crit_completions/recertify_cc_crit_compl'
         );
-        $paths[] = new restore_path_element('recertify_completion', $elepath . '/course_completion/completions/completion');
-        $paths[] = new restore_path_element('recertify_qa', $elepath . '/quizattempts/attempt');
-        $paths[] = new restore_path_element('recertify_qg', $elepath . '/quizgrades/grade');
-        $paths[] = new restore_path_element('recertify_sst', $elepath . '/scormtracks/sco_track');
-        $paths[] = new restore_path_element('recertify_cha', $elepath . '/choiceanswers/choiceanswer');
+        $paths[] = new restore_path_element(
+            'recertify_completion',
+            $elepath . '/recertify_course_completion/recertify_completions/recertify_completion'
+        );
+        $paths[] = new restore_path_element('recertify_qa', $elepath . '/recertify_quizattempts/recertify_attempt');
+        $paths[] = new restore_path_element('recertify_qg', $elepath . '/recertify_quizgrades/recertify_grade');
+        $paths[] = new restore_path_element('recertify_sst', $elepath . '/recertify_scormtracks/recertify_sco_track');
+        $paths[] = new restore_path_element('recertify_cha', $elepath . '/recertify_choiceanswers/recertify_choiceanswer');
 
         return $paths;
     }

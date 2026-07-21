@@ -47,22 +47,27 @@ class backup_local_recertify_plugin extends backup_local_plugin {
             'course', 'name', 'value']);
 
         // Handle Historical course completions.
-        $cc = new backup_nested_element('course_completion');
+        // NOTE: all element names below are prefixed with "recertify_" so they do not clash
+        // with the identically-structured elements defined by local_recompletion (from which
+        // this plugin was forked). Course backup attaches every local plugin to the same
+        // "multiple" optigroup, which requires element names to be unique across all plugins;
+        // sharing names triggers error/multiple_optigroup_duplicate_element.
+        $cc = new backup_nested_element('recertify_course_completion');
 
-        $coursecompletions = new backup_nested_element('coursecompletion', ['id'], [
+        $coursecompletions = new backup_nested_element('recertify_coursecompletion', ['id'], [
             'userid', 'course', 'timeenrolled', 'timestarted', 'timecompleted', 'reaggregate',
         ]);
 
         // Now Handle historical course_completion_crit_compl table.
-        $criteriacompletions = new backup_nested_element('course_completion_crit_completions');
+        $criteriacompletions = new backup_nested_element('recertify_cc_crit_completions');
 
-        $criteriacomplete = new backup_nested_element('course_completion_crit_compl', ['id'], [
+        $criteriacomplete = new backup_nested_element('recertify_cc_crit_compl', ['id'], [
             'criteriaid', 'userid', 'gradefinal', 'unenrolled', 'timecompleted',
         ]);
 
-        $completions = new backup_nested_element('completions');
+        $completions = new backup_nested_element('recertify_completions');
 
-        $completion = new backup_nested_element('completion', ['id'], [
+        $completion = new backup_nested_element('recertify_completion', ['id'], [
             'userid', 'completionstate', 'viewed', 'timemodified', 'coursemoduleid', 'course']);
 
         $plugin->add_child($recertify);
@@ -91,14 +96,14 @@ class backup_local_recertify_plugin extends backup_local_plugin {
         $completion->annotate_ids('course_module', 'coursemoduleid');
 
         // Now deal with Quiz Archive tables.
-        $quizgrades = new backup_nested_element('quizgrades');
+        $quizgrades = new backup_nested_element('recertify_quizgrades');
 
-        $grade = new backup_nested_element('grade', ['id'], [
+        $grade = new backup_nested_element('recertify_grade', ['id'], [
             'userid', 'quiz', 'gradeval', 'timemodified', 'course']);
 
-        $quizattempts = new backup_nested_element('quizattempts');
+        $quizattempts = new backup_nested_element('recertify_quizattempts');
 
-        $attempt = new backup_nested_element('attempt', ['id'], [
+        $attempt = new backup_nested_element('recertify_attempt', ['id'], [
             'userid', 'attempt', 'uniqueid', 'layout', 'currentpage', 'preview', 'quiz',
             'state', 'timestart', 'timefinish', 'timemodified', 'timemodifiedoffline', 'timecheckstate', 'sumgrades', 'course']);
 
@@ -115,9 +120,9 @@ class backup_local_recertify_plugin extends backup_local_plugin {
         $grade->annotate_ids('user', 'userid');
 
         // Now deal with SCORM archive tables.
-        $scotracks = new backup_nested_element('scormtracks');
+        $scotracks = new backup_nested_element('recertify_scormtracks');
 
-        $scotrack = new backup_nested_element('sco_track', ['id'], [
+        $scotrack = new backup_nested_element('recertify_sco_track', ['id'], [
             'userid', 'attempt', 'element', 'value',
             'timemodified', 'course', 'scormid', 'scoid']);
 
@@ -130,9 +135,9 @@ class backup_local_recertify_plugin extends backup_local_plugin {
         $scotrack->annotate_ids('user', 'userid');
 
         // Now deal with choice archive tables.
-        $choiceanswers = new backup_nested_element('choiceanswers');
+        $choiceanswers = new backup_nested_element('recertify_choiceanswers');
 
-        $choiceanswer = new backup_nested_element('choiceanswer', ['id'], [
+        $choiceanswer = new backup_nested_element('recertify_choiceanswer', ['id'], [
             'choiceid', 'userid', 'optionid', 'timemodified', 'choice']);
 
         $recertify->add_child($choiceanswers);
