@@ -2,6 +2,12 @@ Release notes
 -------------
 
 Date          Version   Comment
+2026/08/10    1.2.1     Fix SCORM reset failing with "Table 'scorm_scoes_track'
+                        doesn't exist". That table was removed in Moodle 4.3
+                        (MDL-77943); tracking data now lives in scorm_attempt,
+                        scorm_element and scorm_scoes_value. Archiving joins the
+                        three tables back into the flat local_recertify_sst
+                        format and deletion uses core's scorm_delete_tracks().
 2026/04/29    1.2.0     Supervisor notification: deduplicate password resets per
                         user per task run so multiple supervisors and multiple
                         courses report the same valid credentials (fixes a race

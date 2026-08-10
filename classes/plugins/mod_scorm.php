@@ -104,28 +104,50 @@ class mod_scorm {
 
     /**
      * Reset and archive scorm records.
+     *
+     * Since Moodle 4.3 (MDL-77943) the scorm_scoes_track table no longer exists, the tracking data
+     * is split across scorm_attempt, scorm_element and scorm_scoes_value. The archive table
+     * local_recertify_sst keeps the old flat structure, so the data is joined back together here.
+     *
      * @param \stdclass $userid - user id
      * @param \stdClass $course - course record.
      * @param \stdClass $config - recertify config.
      */
     public static function reset($userid, $course, $config) {
-        global $DB;
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/mod/scorm/locallib.php');
 
         if (empty($config->scorm)) {
             return;
         } else if ($config->scorm == LOCAL_RECERTIFY_DELETE) {
-            $params = ['userid' => $userid, 'course' => $course->id];
-            $selectsql = 'userid = ? AND scormid IN (SELECT id FROM {scorm} WHERE course = ?)';
+            $params = ['userid' => $userid, 'courseid' => $course->id];
+            $scormids = $DB->get_fieldset_select('scorm', 'id', 'course = :courseid', ['courseid' => $course->id]);
+            if (empty($scormids)) {
+                return;
+            }
+
             if ($config->archivescorm) {
-                $scormscoestrack = $DB->get_records_select('scorm_scoes_track', $selectsql, $params);
+                $sql = "SELECT sv.id, sa.userid, sa.scormid, sv.scoid, sa.attempt,
+                               se.element, sv.value, sv.timemodified
+                          FROM {scorm_scoes_value} sv
+                          JOIN {scorm_attempt} sa ON sa.id = sv.attemptid
+                          JOIN {scorm_element} se ON se.id = sv.elementid
+                         WHERE sa.userid = :userid
+                               AND sa.scormid IN (SELECT id FROM {scorm} WHERE course = :courseid)";
+                $scormscoestrack = $DB->get_records_sql($sql, $params);
                 foreach ($scormscoestrack as $sid => $unused) {
                     // Add courseid to records to help with restore process.
                     $scormscoestrack[$sid]->course = $course->id;
                 }
                 $DB->insert_records('local_recertify_sst', $scormscoestrack);
             }
-            $DB->delete_records_select('scorm_scoes_track', $selectsql, $params);
-            $DB->delete_records_select('scorm_aicc_session', $selectsql, $params);
+
+            foreach ($scormids as $scormid) {
+                scorm_delete_tracks($scormid, null, $userid);
+            }
+
+            $selectsql = 'userid = ? AND scormid IN (SELECT id FROM {scorm} WHERE course = ?)';
+            $DB->delete_records_select('scorm_aicc_session', $selectsql, ['userid' => $userid, 'course' => $course->id]);
         }
     }
 }
