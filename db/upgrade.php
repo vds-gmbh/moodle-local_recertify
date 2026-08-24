@@ -71,8 +71,16 @@ function xmldb_local_recertify_upgrade(int $oldversion): bool {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('gradednotificationsenttime', XMLDB_TYPE_INTEGER, '10', null, null, null, null,
-            'timemodifiedoffline');
+        $field = new xmldb_field(
+            'gradednotificationsenttime',
+            XMLDB_TYPE_INTEGER,
+            '10',
+            null,
+            null,
+            null,
+            null,
+            'timemodifiedoffline'
+        );
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }

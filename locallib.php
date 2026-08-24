@@ -38,7 +38,9 @@ function local_recertify_get_supported_plugins() {
     $plugins = [];
     $files = scandir($CFG->dirroot . '/local/recertify/classes/plugins');
     foreach ($files as $file) {
-        $component = clean_param(str_replace('.php', '', $file), PARAM_ALPHAEXT);
+        // PARAM_COMPONENT, not PARAM_ALPHAEXT: the latter strips digits, which silently
+        // turned mod_h5pactivity into the non-existent mod_hpactivity.
+        $component = clean_param(str_replace('.php', '', $file), PARAM_COMPONENT);
         [$plugin, $type] = core_component::normalize_component($component);
 
         if (!core_component::is_valid_plugin_name($type, $plugin)) {

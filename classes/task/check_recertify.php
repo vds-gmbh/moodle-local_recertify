@@ -219,7 +219,7 @@ class check_recertify extends \core\task\scheduled_task {
      */
     public function reset_user($userid, $course, $config) {
         global $CFG;
-        // reset_user() is public API, so it cannot rely on execute() having loaded this already.
+        // Public API entry point, so it cannot rely on execute() having loaded this already.
         require_once($CFG->dirroot . '/local/recertify/locallib.php');
 
         // Archive and delete course completion.
