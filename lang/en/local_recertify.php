@@ -610,3 +610,34 @@ $string['useremail:template'] = <<<EMAIL_TEMPLATE
   </body>
 </html>
 EMAIL_TEMPLATE;
+
+// Lesson.
+$string['lessonattempts'] = 'Lesson attempts';
+$string['lessonattempts_help'] = 'Should existing Lesson attempts be deleted - if archive is selected, the old Lesson attempts will be archived in the local_recertify_la, local_recertify_lg, local_recertify_lt, local_recertify_lb and local_recertify_lo tables. Lesson completion is evaluated against this data, so keeping it means the activity counts as completed again without the user working through the lesson a second time.';
+$string['archivelesson'] = 'Archive old lesson attempts';
+
+// H5P activity.
+$string['h5pactivityattempts'] = 'H5P attempts';
+$string['h5pactivityattempts_help'] = 'Should existing H5P attempts be deleted - if archive is selected, the old attempts will be archived in the local_recertify_h5p and local_recertify_h5pr tables. H5P completion is derived from this data, so keeping it means the activity counts as completed again without the user working through it a second time.';
+$string['archiveh5pactivity'] = 'Archive old H5P attempts';
+
+// Quiz overrides.
+$string['resetquizoverride'] = 'Reset quiz overrides';
+$string['resetquizoverride_help'] = 'Remove any user specific quiz overrides when the quiz attempts are deleted. Without this, extra attempts granted in an earlier cycle stay in place and accumulate over time.';
+
+// Privacy strings for the new archive tables.
+$string['privacy:metadata:timecreated'] = 'The time that the record was created';
+$string['privacy:metadata:local_recertify_cmv'] = 'Archive of previous course module views.';
+$string['privacy:metadata:local_recertify_la'] = 'Archive of previous lesson attempts.';
+$string['privacy:metadata:local_recertify_lg'] = 'Archive of previous lesson grades.';
+$string['privacy:metadata:local_recertify_lt'] = 'Archive of previous lesson timers.';
+$string['privacy:metadata:local_recertify_lb'] = 'Archive of previous lesson branch visits.';
+$string['privacy:metadata:local_recertify_lo'] = 'Archive of previous lesson overrides.';
+$string['privacy:metadata:local_recertify_h5p'] = 'Archive of previous H5P activity attempts.';
+$string['privacy:metadata:local_recertify_h5pr'] = 'Archive of previous H5P activity attempt results.';
+$string['privacy:metadata:lessonid'] = 'The lesson ID linked to this table.';
+$string['privacy:metadata:h5pactivityid'] = 'The H5P activity ID linked to this table.';
+$string['privacy:metadata:grade'] = 'The grade achieved.';
+$string['privacy:metadata:completed'] = 'Whether the attempt was completed.';
+$string['privacy:metadata:rawscore'] = 'The raw score achieved.';
+$string['privacy:metadata:response'] = 'The response given by the user.';

@@ -80,9 +80,19 @@ class mod_quiz {
         );
         $mform->setDefault('archivequiz', $config->archivequiz);
 
+        $mform->addElement(
+            'checkbox',
+            'resetquizoverride',
+            get_string('resetquizoverride', 'local_recertify')
+        );
+        $mform->addHelpButton('resetquizoverride', 'resetquizoverride', 'local_recertify');
+        $mform->setDefault('resetquizoverride', $config->resetquizoverride);
+
         $mform->disabledIf('quiz', 'enable', 'notchecked');
         $mform->disabledIf('archivequiz', 'enable', 'notchecked');
+        $mform->disabledIf('resetquizoverride', 'enable', 'notchecked');
         $mform->hideIf('archivequiz', 'quiz', 'noteq', LOCAL_RECERTIFY_DELETE);
+        $mform->hideIf('resetquizoverride', 'quiz', 'noteq', LOCAL_RECERTIFY_DELETE);
     }
 
     /**
@@ -108,6 +118,13 @@ class mod_quiz {
             new lang_string('archivequiz', 'local_recertify'),
             '',
             1
+        ));
+
+        $settings->add(new \admin_setting_configcheckbox(
+            'local_recertify/resetquizoverride',
+            new lang_string('resetquizoverride', 'local_recertify'),
+            new lang_string('resetquizoverride_help', 'local_recertify'),
+            0
         ));
     }
 
@@ -138,6 +155,10 @@ class mod_quiz {
                     $quizgrades[$qid]->course = $course->id;
                 }
                 $DB->insert_records('local_recertify_qg', $quizgrades);
+            }
+            if (!empty($config->resetquizoverride)) {
+                // Extra attempts granted in an earlier cycle would otherwise accumulate forever.
+                $DB->delete_records_select('quiz_overrides', $selectsql, $params);
             }
             $DB->delete_records_select('quiz_attempts', $selectsql, $params);
             $DB->delete_records_select('quiz_grades', $selectsql, $params);

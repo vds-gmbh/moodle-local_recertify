@@ -105,7 +105,8 @@ class backup_local_recertify_plugin extends backup_local_plugin {
 
         $attempt = new backup_nested_element('recertify_attempt', ['id'], [
             'userid', 'attempt', 'uniqueid', 'layout', 'currentpage', 'preview', 'quiz',
-            'state', 'timestart', 'timefinish', 'timemodified', 'timemodifiedoffline', 'timecheckstate', 'sumgrades', 'course']);
+            'state', 'timestart', 'timefinish', 'timemodified', 'timemodifiedoffline',
+            'gradednotificationsenttime', 'timecheckstate', 'sumgrades', 'course']);
 
         $recertify->add_child($quizgrades);
         $quizgrades->add_child($grade);
@@ -147,6 +148,101 @@ class backup_local_recertify_plugin extends backup_local_plugin {
             $choiceanswer->set_source_table('local_recertify_cha', ['course' => backup::VAR_COURSEID]);
         }
         $choiceanswer->annotate_ids('user', 'userid');
+
+        // Now deal with the course module viewed archive table.
+        $moduleviews = new backup_nested_element('recertify_moduleviews');
+
+        $moduleview = new backup_nested_element('recertify_moduleview', ['id'], [
+            'coursemoduleid', 'userid', 'timecreated', 'course']);
+
+        $recertify->add_child($moduleviews);
+        $moduleviews->add_child($moduleview);
+
+        if ($usercompletion) {
+            $moduleview->set_source_table('local_recertify_cmv', ['course' => backup::VAR_COURSEID]);
+        }
+        $moduleview->annotate_ids('user', 'userid');
+        $moduleview->annotate_ids('course_module', 'coursemoduleid');
+
+        // Now deal with the H5P archive tables. The results are nested below their attempt so the
+        // restore can resolve the archived attempt id through get_new_parentid().
+        $h5ps = new backup_nested_element('recertify_h5ps');
+
+        $h5p = new backup_nested_element('recertify_h5p', ['id'], [
+            'originalattemptid', 'h5pactivityid', 'userid', 'timecreated', 'timemodified', 'attempt',
+            'rawscore', 'maxscore', 'scaled', 'duration', 'completion', 'success', 'course']);
+
+        $h5presults = new backup_nested_element('recertify_h5presults');
+
+        $h5presult = new backup_nested_element('recertify_h5presult', ['id'], [
+            'attemptid', 'subcontent', 'timecreated', 'interactiontype', 'description', 'correctpattern',
+            'response', 'additionals', 'rawscore', 'maxscore', 'duration', 'completion', 'success', 'course']);
+
+        $recertify->add_child($h5ps);
+        $h5ps->add_child($h5p);
+        $h5p->add_child($h5presults);
+        $h5presults->add_child($h5presult);
+
+        if ($usercompletion) {
+            $h5p->set_source_table('local_recertify_h5p', ['course' => backup::VAR_COURSEID]);
+            $h5presult->set_source_table(
+                'local_recertify_h5pr',
+                ['course' => backup::VAR_COURSEID, 'attemptid' => backup::VAR_PARENTID]
+            );
+        }
+        $h5p->annotate_ids('user', 'userid');
+
+        // Now deal with the lesson archive tables.
+        $lessonattempts = new backup_nested_element('recertify_lessonattempts');
+
+        $lessonattempt = new backup_nested_element('recertify_lessonattempt', ['id'], [
+            'lessonid', 'pageid', 'userid', 'answerid', 'retry', 'correct', 'useranswer', 'timeseen', 'course']);
+
+        $lessongrades = new backup_nested_element('recertify_lessongrades');
+
+        $lessongrade = new backup_nested_element('recertify_lessongrade', ['id'], [
+            'lessonid', 'userid', 'grade', 'late', 'completed', 'course']);
+
+        $lessontimers = new backup_nested_element('recertify_lessontimers');
+
+        $lessontimer = new backup_nested_element('recertify_lessontimer', ['id'], [
+            'lessonid', 'userid', 'starttime', 'lessontime', 'completed', 'timemodifiedoffline', 'course']);
+
+        $lessonbranches = new backup_nested_element('recertify_lessonbranches');
+
+        $lessonbranch = new backup_nested_element('recertify_lessonbranch', ['id'], [
+            'lessonid', 'userid', 'pageid', 'retry', 'flag', 'timeseen', 'nextpageid', 'course']);
+
+        $lessonoverrides = new backup_nested_element('recertify_lessonoverrides');
+
+        $lessonoverride = new backup_nested_element('recertify_lessonoverride', ['id'], [
+            'lessonid', 'groupid', 'userid', 'available', 'deadline', 'timelimit', 'review',
+            'maxattempts', 'retake', 'password', 'course']);
+
+        $recertify->add_child($lessonattempts);
+        $lessonattempts->add_child($lessonattempt);
+        $recertify->add_child($lessongrades);
+        $lessongrades->add_child($lessongrade);
+        $recertify->add_child($lessontimers);
+        $lessontimers->add_child($lessontimer);
+        $recertify->add_child($lessonbranches);
+        $lessonbranches->add_child($lessonbranch);
+        $recertify->add_child($lessonoverrides);
+        $lessonoverrides->add_child($lessonoverride);
+
+        if ($usercompletion) {
+            $lessonattempt->set_source_table('local_recertify_la', ['course' => backup::VAR_COURSEID]);
+            $lessongrade->set_source_table('local_recertify_lg', ['course' => backup::VAR_COURSEID]);
+            $lessontimer->set_source_table('local_recertify_lt', ['course' => backup::VAR_COURSEID]);
+            $lessonbranch->set_source_table('local_recertify_lb', ['course' => backup::VAR_COURSEID]);
+            $lessonoverride->set_source_table('local_recertify_lo', ['course' => backup::VAR_COURSEID]);
+        }
+
+        $lessonattempt->annotate_ids('user', 'userid');
+        $lessongrade->annotate_ids('user', 'userid');
+        $lessontimer->annotate_ids('user', 'userid');
+        $lessonbranch->annotate_ids('user', 'userid');
+        $lessonoverride->annotate_ids('user', 'userid');
 
         return $plugin;
     }

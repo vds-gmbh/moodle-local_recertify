@@ -100,38 +100,40 @@ class check_recertify extends \core\task\scheduled_task {
     protected function reset_completions($userid, $course, $config) {
         global $DB;
         $params = ['userid' => $userid, 'course' => $course->id];
+        $archive = !empty(get_config('local_recertify', 'forcearchivecompletiondata')) || $config->archivecompletiondata;
 
-        $coursecompletions = $DB->get_records('course_completions', $params);
-        if (!empty(get_config('local_recertify', 'forcearchivecompletiondata')) || $config->archivecompletiondata) {
+        if ($archive) {
+            $coursecompletions = $DB->get_records('course_completions', $params);
             $DB->insert_records('local_recertify_cc', $coursecompletions);
             $criteriacompletions = $DB->get_records('course_completion_crit_compl', $params);
             $DB->insert_records('local_recertify_cc_cc', $criteriacompletions);
         }
         $DB->delete_records('course_completions', $params);
-
-        // Update existing records instead of deleting them.
-        foreach ($coursecompletions as $coursecompletion) {
-            $coursecompletion->timeenrolled = time();
-            $coursecompletion->timestarted = 0;
-            $coursecompletion->timecompleted = null;
-            $coursecompletion->reaggregate = 0;
-
-            $DB->update_record('course_completions', $coursecompletion, false);
-        }
-
         $DB->delete_records('course_completion_crit_compl', $params);
 
         // Archive and delete all activity completions.
         $selectsql = 'userid = ? AND coursemoduleid IN (SELECT id FROM {course_modules} WHERE course = ?)';
-        if (!empty(get_config('local_recertify', 'forcearchivecompletiondata')) || $config->archivecompletiondata) {
+        if ($archive) {
             $cmc = $DB->get_records_select('course_modules_completion', $selectsql, $params);
-            foreach ($cmc as $cid => $unused) {
+            foreach ($cmc as $record) {
                 // Add courseid to records to help with restore process.
-                $cmc[$cid]->course = $course->id;
+                $record->course = $course->id;
             }
             $DB->insert_records('local_recertify_cmc', $cmc);
+
+            $cmv = $DB->get_records_select('course_modules_viewed', $selectsql, $params);
+            foreach ($cmv as $record) {
+                // Add courseid to records to help with restore process.
+                $record->course = $course->id;
+            }
+            $DB->insert_records('local_recertify_cmv', $cmv);
         }
         $DB->delete_records_select('course_modules_completion', $selectsql, $params);
+
+        // The viewed rows must go together with the completion rows. completion_info::set_module_viewed()
+        // returns early while a viewed row exists, so leaving them behind means a view-tracked activity
+        // can never be completed again.
+        $DB->delete_records_select('course_modules_viewed', $selectsql, $params);
     }
 
     /**
@@ -217,6 +219,9 @@ class check_recertify extends \core\task\scheduled_task {
      */
     public function reset_user($userid, $course, $config) {
         global $CFG;
+        // reset_user() is public API, so it cannot rely on execute() having loaded this already.
+        require_once($CFG->dirroot . '/local/recertify/locallib.php');
+
         // Archive and delete course completion.
         $this->reset_completions($userid, $course, $config);
 

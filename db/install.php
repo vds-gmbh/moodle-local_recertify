@@ -55,6 +55,14 @@ function xmldb_local_recertify_install(): bool {
         'local_recompletion_qr_text'   => 'local_recertify_qr_text',
         'local_recompletion_cha'       => 'local_recertify_cha',
         'local_recompletion_ccert_is'  => 'local_recertify_ccert_is',
+        'local_recompletion_cmv'       => 'local_recertify_cmv',
+        'local_recompletion_la'        => 'local_recertify_la',
+        'local_recompletion_lg'        => 'local_recertify_lg',
+        'local_recompletion_lt'        => 'local_recertify_lt',
+        'local_recompletion_lb'        => 'local_recertify_lb',
+        'local_recompletion_lo'        => 'local_recertify_lo',
+        // Note: local_recompletion_h5p/_h5pr are deliberately left out. The results reference their
+        // attempt by id and this migration drops ids, so copying them would break that link.
     ];
 
     // Check if local_recompletion was installed by looking for its first table.

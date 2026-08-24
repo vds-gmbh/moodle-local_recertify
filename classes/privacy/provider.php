@@ -66,6 +66,55 @@ class provider implements
             'timemodified' => 'privacy:metadata:timemodified',
         ], 'privacy:metadata:local_recertify_cmc');
 
+        $collection->add_database_table('local_recertify_cmv', [
+            'userid' => 'privacy:metadata:userid',
+            'coursemoduleid' => 'privacy:metadata:coursemoduleid',
+            'timecreated' => 'privacy:metadata:timecreated',
+        ], 'privacy:metadata:local_recertify_cmv');
+
+        $collection->add_database_table('local_recertify_la', [
+            'userid' => 'privacy:metadata:userid',
+            'lessonid' => 'privacy:metadata:lessonid',
+            'useranswer' => 'privacy:metadata:response',
+        ], 'privacy:metadata:local_recertify_la');
+
+        $collection->add_database_table('local_recertify_lg', [
+            'userid' => 'privacy:metadata:userid',
+            'lessonid' => 'privacy:metadata:lessonid',
+            'grade' => 'privacy:metadata:grade',
+            'completed' => 'privacy:metadata:completed',
+        ], 'privacy:metadata:local_recertify_lg');
+
+        $collection->add_database_table('local_recertify_lt', [
+            'userid' => 'privacy:metadata:userid',
+            'lessonid' => 'privacy:metadata:lessonid',
+            'completed' => 'privacy:metadata:completed',
+        ], 'privacy:metadata:local_recertify_lt');
+
+        $collection->add_database_table('local_recertify_lb', [
+            'userid' => 'privacy:metadata:userid',
+            'lessonid' => 'privacy:metadata:lessonid',
+        ], 'privacy:metadata:local_recertify_lb');
+
+        $collection->add_database_table('local_recertify_lo', [
+            'userid' => 'privacy:metadata:userid',
+            'lessonid' => 'privacy:metadata:lessonid',
+        ], 'privacy:metadata:local_recertify_lo');
+
+        $collection->add_database_table('local_recertify_h5p', [
+            'userid' => 'privacy:metadata:userid',
+            'h5pactivityid' => 'privacy:metadata:h5pactivityid',
+            'attempt' => 'privacy:metadata:attempt',
+            'rawscore' => 'privacy:metadata:rawscore',
+            'timecreated' => 'privacy:metadata:timecreated',
+        ], 'privacy:metadata:local_recertify_h5p');
+
+        $collection->add_database_table('local_recertify_h5pr', [
+            'response' => 'privacy:metadata:response',
+            'rawscore' => 'privacy:metadata:rawscore',
+            'timecreated' => 'privacy:metadata:timecreated',
+        ], 'privacy:metadata:local_recertify_h5pr');
+
         $collection->add_database_table('local_recertify_cc_cc', [
             'userid' => 'privacy:metadata:userid',
             'course' => 'privacy:metadata:course',
@@ -222,6 +271,84 @@ class provider implements
                     (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
                 );
             }
+
+            $records = $DB->get_records('local_recertify_cmv', $params);
+            foreach ($records as $record) {
+                $context = \context_course::instance($record->course);
+                writer::with_context($context)->export_data(
+                    [get_string('recertify', 'local_recertify'), 'course_module_viewed'],
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
+            }
+
+            $records = $DB->get_records('local_recertify_la', $params);
+            foreach ($records as $record) {
+                $context = \context_course::instance($record->course);
+                writer::with_context($context)->export_data(
+                    [get_string('recertify', 'local_recertify'), 'lesson_attempts'],
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
+            }
+
+            $records = $DB->get_records('local_recertify_lg', $params);
+            foreach ($records as $record) {
+                $context = \context_course::instance($record->course);
+                writer::with_context($context)->export_data(
+                    [get_string('recertify', 'local_recertify'), 'lesson_grades'],
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
+            }
+
+            $records = $DB->get_records('local_recertify_lt', $params);
+            foreach ($records as $record) {
+                $context = \context_course::instance($record->course);
+                writer::with_context($context)->export_data(
+                    [get_string('recertify', 'local_recertify'), 'lesson_timer'],
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
+            }
+
+            $records = $DB->get_records('local_recertify_lb', $params);
+            foreach ($records as $record) {
+                $context = \context_course::instance($record->course);
+                writer::with_context($context)->export_data(
+                    [get_string('recertify', 'local_recertify'), 'lesson_branch'],
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
+            }
+
+            $records = $DB->get_records('local_recertify_lo', $params);
+            foreach ($records as $record) {
+                $context = \context_course::instance($record->course);
+                writer::with_context($context)->export_data(
+                    [get_string('recertify', 'local_recertify'), 'lesson_overrides'],
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
+            }
+
+            $records = $DB->get_records('local_recertify_h5p', $params);
+            foreach ($records as $record) {
+                $context = \context_course::instance($record->course);
+                writer::with_context($context)->export_data(
+                    [get_string('recertify', 'local_recertify'), 'h5pactivity_attempts'],
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
+            }
+
+            $records = $DB->get_records_sql(
+                "SELECT rc.*
+                   FROM {local_recertify_h5pr} rc
+                   JOIN {local_recertify_h5p} ra ON ra.id = rc.attemptid
+                  WHERE ra.userid = :userid AND ra.course = :course",
+                $params
+            );
+            foreach ($records as $record) {
+                $context = \context_course::instance($record->course);
+                writer::with_context($context)->export_data(
+                    [get_string('recertify', 'local_recertify'), 'h5pactivity_results'],
+                    (object)[array_map([self::class, 'transform_db_row_to_session_data'], $records)]
+                );
+            }
         }
     }
 
@@ -268,6 +395,14 @@ class provider implements
         $DB->delete_records('local_recertify_sst', $params);
         $DB->delete_records('local_recertify_qr', $params);
         $DB->delete_records('local_recertify_cha', $params);
+        $DB->delete_records('local_recertify_cmv', $params);
+        $DB->delete_records('local_recertify_la', $params);
+        $DB->delete_records('local_recertify_lg', $params);
+        $DB->delete_records('local_recertify_lt', $params);
+        $DB->delete_records('local_recertify_lb', $params);
+        $DB->delete_records('local_recertify_lo', $params);
+        $DB->delete_records('local_recertify_h5p', $params);
+        $DB->delete_records('local_recertify_h5pr', $params);
     }
 
     /**
@@ -293,6 +428,19 @@ class provider implements
             $DB->delete_records('local_recertify_ltia', ['userid' => $userid]);
             $DB->delete_records('local_recertify_qr', $params);
             $DB->delete_records('local_recertify_cha', $params);
+            $DB->delete_records('local_recertify_cmv', $params);
+            $DB->delete_records('local_recertify_la', $params);
+            $DB->delete_records('local_recertify_lg', $params);
+            $DB->delete_records('local_recertify_lt', $params);
+            $DB->delete_records('local_recertify_lb', $params);
+            $DB->delete_records('local_recertify_lo', $params);
+            // The results reference the archived attempts, so they have to go first.
+            $DB->delete_records_select(
+                'local_recertify_h5pr',
+                'attemptid IN (SELECT id FROM {local_recertify_h5p} WHERE userid = :userid AND course = :course)',
+                $params
+            );
+            $DB->delete_records('local_recertify_h5p', $params);
         }
     }
 
@@ -345,6 +493,41 @@ class provider implements
                   FROM {course} c
                   JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
                   JOIN {local_recertify_cha} rc ON rc.course = c.id and rc.userid = :userid";
+        $contextlist->add_from_sql($sql, $params);
+        $sql = "SELECT ctx.id
+                  FROM {course} c
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  JOIN {local_recertify_cmv} rc ON rc.course = c.id and rc.userid = :userid";
+        $contextlist->add_from_sql($sql, $params);
+        $sql = "SELECT ctx.id
+                  FROM {course} c
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  JOIN {local_recertify_la} rc ON rc.course = c.id and rc.userid = :userid";
+        $contextlist->add_from_sql($sql, $params);
+        $sql = "SELECT ctx.id
+                  FROM {course} c
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  JOIN {local_recertify_lg} rc ON rc.course = c.id and rc.userid = :userid";
+        $contextlist->add_from_sql($sql, $params);
+        $sql = "SELECT ctx.id
+                  FROM {course} c
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  JOIN {local_recertify_lt} rc ON rc.course = c.id and rc.userid = :userid";
+        $contextlist->add_from_sql($sql, $params);
+        $sql = "SELECT ctx.id
+                  FROM {course} c
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  JOIN {local_recertify_lb} rc ON rc.course = c.id and rc.userid = :userid";
+        $contextlist->add_from_sql($sql, $params);
+        $sql = "SELECT ctx.id
+                  FROM {course} c
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  JOIN {local_recertify_lo} rc ON rc.course = c.id and rc.userid = :userid";
+        $contextlist->add_from_sql($sql, $params);
+        $sql = "SELECT ctx.id
+                  FROM {course} c
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  JOIN {local_recertify_h5p} rc ON rc.course = c.id and rc.userid = :userid";
         $contextlist->add_from_sql($sql, $params);
         return $contextlist;
     }
@@ -411,6 +594,55 @@ class provider implements
 
         $sql = "SELECT rc.userid
                   FROM {local_recertify_cha} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "SELECT rc.userid
+                  FROM {local_recertify_cmv} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "SELECT rc.userid
+                  FROM {local_recertify_la} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "SELECT rc.userid
+                  FROM {local_recertify_lg} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "SELECT rc.userid
+                  FROM {local_recertify_lt} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "SELECT rc.userid
+                  FROM {local_recertify_lb} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "SELECT rc.userid
+                  FROM {local_recertify_lo} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        $sql = "SELECT rc.userid
+                  FROM {local_recertify_h5p} rc
                   JOIN {course} c ON rc.course = c.id
                   JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
                   WHERE ctx.id = :contextid";
@@ -501,5 +733,70 @@ class provider implements
                   WHERE ctx.id = :contextid AND rc.userid $insql";
         $params = array_merge($inparams, ['contextid' => $context->id]);
         $DB->delete_records_select('local_recertify_cha', "id $sql", $params);
+
+        $sql = "SELECT rc.id
+                  FROM {local_recertify_h5pr} rc
+                  JOIN {local_recertify_h5p} ra ON ra.id = rc.attemptid
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid AND ra.userid $insql";
+        $params = array_merge($inparams, ['contextid' => $context->id]);
+        $DB->delete_records_select('local_recertify_h5pr', "id $sql", $params);
+
+        $sql = "SELECT rc.id
+                  FROM {local_recertify_cmv} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid AND rc.userid $insql";
+        $params = array_merge($inparams, ['contextid' => $context->id]);
+        $DB->delete_records_select('local_recertify_cmv', "id $sql", $params);
+
+        $sql = "SELECT rc.id
+                  FROM {local_recertify_la} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid AND rc.userid $insql";
+        $params = array_merge($inparams, ['contextid' => $context->id]);
+        $DB->delete_records_select('local_recertify_la', "id $sql", $params);
+
+        $sql = "SELECT rc.id
+                  FROM {local_recertify_lg} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid AND rc.userid $insql";
+        $params = array_merge($inparams, ['contextid' => $context->id]);
+        $DB->delete_records_select('local_recertify_lg', "id $sql", $params);
+
+        $sql = "SELECT rc.id
+                  FROM {local_recertify_lt} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid AND rc.userid $insql";
+        $params = array_merge($inparams, ['contextid' => $context->id]);
+        $DB->delete_records_select('local_recertify_lt', "id $sql", $params);
+
+        $sql = "SELECT rc.id
+                  FROM {local_recertify_lb} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid AND rc.userid $insql";
+        $params = array_merge($inparams, ['contextid' => $context->id]);
+        $DB->delete_records_select('local_recertify_lb', "id $sql", $params);
+
+        $sql = "SELECT rc.id
+                  FROM {local_recertify_lo} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid AND rc.userid $insql";
+        $params = array_merge($inparams, ['contextid' => $context->id]);
+        $DB->delete_records_select('local_recertify_lo', "id $sql", $params);
+
+        $sql = "SELECT rc.id
+                  FROM {local_recertify_h5p} rc
+                  JOIN {course} c ON rc.course = c.id
+                  JOIN {context} ctx ON c.id = ctx.instanceid AND ctx.contextlevel = :contextlevel
+                  WHERE ctx.id = :contextid AND rc.userid $insql";
+        $params = array_merge($inparams, ['contextid' => $context->id]);
+        $DB->delete_records_select('local_recertify_h5p', "id $sql", $params);
     }
 }
