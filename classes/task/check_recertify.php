@@ -58,6 +58,12 @@ class check_recertify extends \core\task\scheduled_task {
             return;
         }
 
+        $repaired = self::repair_orphaned_viewed();
+        if ($repaired > 0) {
+            mtrace("local_recertify: removed {$repaired} orphaned course_modules_viewed rows " .
+                "left behind by a reset before release 1.3.0.");
+        }
+
         $sql = "SELECT cc.userid, cc.course
             FROM {course_completions} cc
             JOIN {local_recertify_config} r ON r.course = cc.course AND r.name = 'enable' AND r.value = '1'
@@ -89,6 +95,69 @@ class check_recertify extends \core\task\scheduled_task {
             }
             $this->reset_user($user->userid, $course, $config);
         }
+    }
+
+    /**
+     * Remove course_modules_viewed rows left behind by a reset before release 1.3.0.
+     *
+     * Up to that release the reset deleted course_modules_completion but not course_modules_viewed.
+     * completion_info::set_module_viewed() returns early while a viewed row exists, so the affected
+     * users can never complete a view tracked activity again and do not recover on their own.
+     *
+     * Deleting completion data is only defensible where this plugin can prove it caused the state,
+     * so the two queries below both require evidence of one of our own resets:
+     *
+     * - an archived completion for exactly this activity and user, which only we write, or
+     * - a logged reset for this user and course.
+     *
+     * Both are additionally required to postdate the viewed row. A view that happened after the
+     * last reset belongs to the current cycle and must never be touched, whatever else is missing.
+     *
+     * On top of that no completion row may exist any more. That combination cannot
+     * occur in healthy data because completion_info::internal_set_data() always writes the
+     * completion row and the viewed row inside a single transaction.
+     *
+     * @return int Number of orphaned rows removed.
+     */
+    public static function repair_orphaned_viewed(): int {
+        global $DB;
+
+        $orphaned = "LEFT JOIN {course_modules_completion} cmc
+                            ON cmc.coursemoduleid = cmv.coursemoduleid AND cmc.userid = cmv.userid";
+
+        // Evidence 1: we archived the completion for this exact activity and user.
+        $bearchive = "SELECT cmv.id
+                        FROM {course_modules_viewed} cmv
+                        JOIN {local_recertify_cmc} arc
+                             ON arc.coursemoduleid = cmv.coursemoduleid AND arc.userid = cmv.userid
+                                AND cmv.timecreated <= arc.timemodified
+                      $orphaned
+                       WHERE cmc.id IS NULL";
+
+        // Evidence 2: we logged a reset for this user and course after the activity was viewed.
+        // This covers resets that ran with archiving switched off.
+        $bylog = "SELECT cmv.id
+                    FROM {course_modules_viewed} cmv
+                    JOIN {course_modules} cm ON cm.id = cmv.coursemoduleid
+                    JOIN {local_recertify_reset_log} rl
+                         ON rl.courseid = cm.course AND rl.userid = cmv.userid
+                            AND cmv.timecreated <= rl.timecreated
+                  $orphaned
+                   WHERE cmc.id IS NULL";
+
+        $ids = array_unique(array_merge($DB->get_fieldset_sql($bearchive), $DB->get_fieldset_sql($bylog)));
+        if (empty($ids)) {
+            return 0;
+        }
+
+        foreach (array_chunk($ids, 1000) as $chunk) {
+            $DB->delete_records_list('course_modules_viewed', 'id', $chunk);
+        }
+
+        // The stale state is cached per course, so drop it for everyone.
+        \cache::make('core', 'completion')->purge();
+
+        return count($ids);
     }
 
     /**

@@ -23,7 +23,6 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 
 require_once($CFG->dirroot . '/local/recertify/locallib.php');
-require_once($CFG->dirroot . '/local/recertify/db/upgrade.php');
 
 /**
  * Tests for resetting activity data.
@@ -169,27 +168,106 @@ final class reset_test extends \advanced_testcase {
     }
 
     /**
-     * The repair helper clears viewed rows left behind by earlier releases.
+     * Put the database into the state an old release left behind: completion gone, viewed kept.
+     *
+     * @param \stdClass $cm The course module record.
      */
-    public function test_repair_removes_orphaned_viewed_rows(): void {
+    private function break_completion(\stdClass $cm): void {
         global $DB;
 
-        $DB->insert_record('local_recertify_config', (object) [
-            'course' => $this->course->id,
-            'name' => 'enable',
-            'value' => '1',
+        $DB->delete_records('course_modules_completion', [
+            'coursemoduleid' => $cm->id,
+            'userid' => $this->student->id,
         ]);
+    }
+
+    /**
+     * An archived completion for the activity proves the reset was ours, so the row goes.
+     */
+    public function test_repair_uses_the_completion_archive_as_evidence(): void {
+        global $DB;
 
         $cm = $this->create_view_tracked_page();
         $this->view_as_student($cm);
-        $key = ['coursemoduleid' => $cm->id, 'userid' => $this->student->id];
 
-        // Reproduce the broken state: completion gone, viewed left behind.
-        $DB->delete_records('course_modules_completion', $key);
-        $this->assertTrue($DB->record_exists('course_modules_viewed', $key));
+        // A real reset archives the completion; recreate that record, then break the state.
+        $DB->insert_record('local_recertify_cmc', (object) [
+            'coursemoduleid' => $cm->id,
+            'userid' => $this->student->id,
+            'completionstate' => COMPLETION_COMPLETE,
+            'timemodified' => time() + 1,
+            'course' => $this->course->id,
+        ]);
+        $this->break_completion($cm);
 
-        $this->assertEquals(1, local_recertify_repair_orphaned_viewed());
-        $this->assertFalse($DB->record_exists('course_modules_viewed', $key));
+        $this->assertEquals(1, check_recertify::repair_orphaned_viewed());
+        $this->assertFalse($DB->record_exists('course_modules_viewed', [
+            'coursemoduleid' => $cm->id,
+            'userid' => $this->student->id,
+        ]));
+    }
+
+    /**
+     * A logged reset also proves it, which covers resets that ran without archiving.
+     */
+    public function test_repair_uses_the_reset_log_as_evidence(): void {
+        global $DB;
+
+        $cm = $this->create_view_tracked_page();
+        $this->view_as_student($cm);
+
+        $DB->insert_record('local_recertify_reset_log', (object) [
+            'userid' => $this->student->id,
+            'courseid' => $this->course->id,
+            'timecreated' => time() + 1,
+        ]);
+        $this->break_completion($cm);
+
+        $this->assertEquals(1, check_recertify::repair_orphaned_viewed());
+        $this->assertFalse($DB->record_exists('course_modules_viewed', [
+            'coursemoduleid' => $cm->id,
+            'userid' => $this->student->id,
+        ]));
+    }
+
+    /**
+     * Without evidence of one of our resets the row is left alone, whatever caused it.
+     */
+    public function test_repair_leaves_rows_without_evidence_alone(): void {
+        global $DB;
+
+        $cm = $this->create_view_tracked_page();
+        $this->view_as_student($cm);
+        $this->break_completion($cm);
+
+        $this->assertEquals(0, check_recertify::repair_orphaned_viewed());
+        $this->assertTrue($DB->record_exists('course_modules_viewed', [
+            'coursemoduleid' => $cm->id,
+            'userid' => $this->student->id,
+        ]));
+    }
+
+    /**
+     * A reset logged before the activity was viewed says nothing about that viewed row.
+     */
+    public function test_repair_ignores_a_reset_that_predates_the_view(): void {
+        global $DB;
+
+        $cm = $this->create_view_tracked_page();
+        $this->view_as_student($cm);
+
+        $DB->insert_record('local_recertify_reset_log', (object) [
+            'userid' => $this->student->id,
+            'courseid' => $this->course->id,
+            'timecreated' => time() - HOURSECS,
+        ]);
+        $this->break_completion($cm);
+
+        $this->assertEquals(0, check_recertify::repair_orphaned_viewed());
+        $this->assertTrue($DB->record_exists('course_modules_viewed', [
+            'coursemoduleid' => $cm->id,
+            'userid' => $this->student->id,
+        ]));
     }
 
     /**
@@ -198,16 +276,16 @@ final class reset_test extends \advanced_testcase {
     public function test_repair_keeps_healthy_rows(): void {
         global $DB;
 
-        $DB->insert_record('local_recertify_config', (object) [
-            'course' => $this->course->id,
-            'name' => 'enable',
-            'value' => '1',
-        ]);
-
         $cm = $this->create_view_tracked_page();
         $this->view_as_student($cm);
 
-        $this->assertEquals(0, local_recertify_repair_orphaned_viewed());
+        $DB->insert_record('local_recertify_reset_log', (object) [
+            'userid' => $this->student->id,
+            'courseid' => $this->course->id,
+            'timecreated' => time() + 1,
+        ]);
+
+        $this->assertEquals(0, check_recertify::repair_orphaned_viewed());
         $this->assertTrue($DB->record_exists('course_modules_viewed', [
             'coursemoduleid' => $cm->id,
             'userid' => $this->student->id,

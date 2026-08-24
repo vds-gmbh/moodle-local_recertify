@@ -8,8 +8,12 @@ Date          Version   Comment
                         that row exists, so view-tracked activities (certificates, pages,
                         files, ...) stayed incomplete forever and the course never
                         recompleted. The viewed rows are now archived to the new
-                        local_recertify_cmv table and removed, and an upgrade step clears
-                        the rows left behind by earlier releases.
+                        local_recertify_cmv table and removed. The rows left behind by
+                        earlier releases are cleared by the scheduled task rather than by
+                        the upgrade, and only where the plugin can prove it caused the
+                        state: an archived completion for that exact activity and user, or
+                        a logged reset for that user and course, in both cases postdating
+                        the viewed row. Orphans without that evidence are left alone.
                         Add mod_lesson and mod_h5pactivity reset handlers. Their completion
                         rules are evaluated live against the module data, so leaving it in
                         place made the activity count as completed again without the user

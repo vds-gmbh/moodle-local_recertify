@@ -56,8 +56,6 @@ function xmldb_local_recertify_upgrade(int $oldversion): bool {
             }
         }
 
-        local_recertify_repair_orphaned_viewed();
-
         upgrade_plugin_savepoint(true, 2026081001, 'local', 'recertify');
     }
 
@@ -89,42 +87,4 @@ function xmldb_local_recertify_upgrade(int $oldversion): bool {
     }
 
     return true;
-}
-
-/**
- * Remove course_modules_viewed rows left behind by earlier resets.
- *
- * Before this release the reset deleted course_modules_completion but not course_modules_viewed.
- * completion_info::set_module_viewed() returns early when a viewed row exists, so the affected
- * users could never complete a view-tracked activity again. A viewed row without a matching
- * completion row can only be the result of that bug: completion_info::internal_set_data() always
- * writes both rows inside one transaction.
- *
- * @return int Number of orphaned rows removed.
- */
-function local_recertify_repair_orphaned_viewed(): int {
-    global $DB;
-
-    $sql = "SELECT cmv.id
-              FROM {course_modules_viewed} cmv
-              JOIN {course_modules} cm ON cm.id = cmv.coursemoduleid
-              JOIN {local_recertify_config} rc
-                   ON rc.course = cm.course AND rc.name = 'enable' AND rc.value = '1'
-         LEFT JOIN {course_modules_completion} cmc
-                   ON cmc.coursemoduleid = cmv.coursemoduleid AND cmc.userid = cmv.userid
-             WHERE cmc.id IS NULL";
-    $ids = $DB->get_fieldset_sql($sql);
-
-    if (empty($ids)) {
-        return 0;
-    }
-
-    foreach (array_chunk($ids, 1000) as $chunk) {
-        $DB->delete_records_list('course_modules_viewed', 'id', $chunk);
-    }
-
-    // The stale state is cached per course, so drop it for everyone.
-    \cache::make('core', 'completion')->purge();
-
-    return count($ids);
 }
