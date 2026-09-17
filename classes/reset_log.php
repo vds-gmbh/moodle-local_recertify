@@ -81,10 +81,11 @@ class reset_log {
 
         if (!$lasttimereset) {
             // Add the reset interval to the user's last completed time to figure out when their completion expired.
-            $resettime = new \DateTime('@' . $lasttimecomplete, $tz);
-            $resettime->add($interval)->format('d.m.Y');
+            // DateTime ignores a timezone passed alongside a '@timestamp', so apply it afterwards.
+            $resettime = (new \DateTime('@' . $lasttimecomplete))->setTimezone($tz);
+            $resettime->add($interval);
         } else {
-            $resettime = new \DateTime('@' . $lasttimereset, $tz);
+            $resettime = (new \DateTime('@' . $lasttimereset))->setTimezone($tz);
         }
 
         return $resettime;

@@ -64,7 +64,7 @@ class check_recertify extends \core\task\scheduled_task {
                 "left behind by a reset before release 1.3.0.");
         }
 
-        $sql = "SELECT cc.userid, cc.course
+        $sql = "SELECT cc.userid, cc.course, cc.timecompleted
             FROM {course_completions} cc
             JOIN {local_recertify_config} r ON r.course = cc.course AND r.name = 'enable' AND r.value = '1'
             JOIN {local_recertify_config} r2 ON r2.course = cc.course AND r2.name = 'recertifyduration'
@@ -93,8 +93,34 @@ class check_recertify extends \core\task\scheduled_task {
             } else {
                 $config = $configs[$user->course];
             }
+            if (!self::is_past_last_valid_day($user->timecompleted, (int) $config->recertifyduration)) {
+                // The expiry falls on a day that has not finished yet, see is_past_last_valid_day().
+                continue;
+            }
+
             $this->reset_user($user->userid, $course, $config);
         }
+    }
+
+    /**
+     * Has the last day of validity finished?
+     *
+     * The supervisor report presents the validity as a plain date ("Gültig bis 17.09.2026"), which
+     * readers take to include that whole day. The expiry itself is a timestamp, so resetting exactly
+     * on it flags people as overdue from the completion's time of day onwards, while the day they
+     * were promised is still running. Validity therefore ends at the end of that day.
+     *
+     * @param int $timecompleted When the user completed the course.
+     * @param int $duration Recertification interval in seconds.
+     * @return bool True once the last valid day is over.
+     */
+    public static function is_past_last_valid_day(int $timecompleted, int $duration): bool {
+        $lastvalidday = new \DateTime('@' . ($timecompleted + $duration));
+        // DateTime ignores a timezone passed alongside a '@timestamp', so apply it afterwards.
+        $lastvalidday->setTimezone(\core_date::get_server_timezone_object());
+        $lastvalidday->setTime(23, 59, 59);
+
+        return time() > $lastvalidday->getTimestamp();
     }
 
     /**

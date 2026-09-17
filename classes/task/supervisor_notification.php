@@ -278,9 +278,11 @@ HTML;
         $overdueusers = [];
 
         foreach ($users as $user) {
-            $timecompleted = $user->timecompleted ? new \DateTime('@' . $user->timecompleted, $tz) : null;
-            $timeenrolled  = $user->timeenrolled ? new \DateTime('@' . $user->timeenrolled, $tz) : null;
-            $timestarted   = $user->timestarted ? new \DateTime('@' . $user->timestarted, $tz) : null;
+            // DateTime ignores a timezone passed alongside a '@timestamp' and stays in UTC, so the
+            // timezone has to be applied afterwards or the dates below are formatted a day early.
+            $timecompleted = $user->timecompleted ? (new \DateTime('@' . $user->timecompleted))->setTimezone($tz) : null;
+            $timeenrolled  = $user->timeenrolled ? (new \DateTime('@' . $user->timeenrolled))->setTimezone($tz) : null;
+            $timestarted   = $user->timestarted ? (new \DateTime('@' . $user->timestarted))->setTimezone($tz) : null;
             $suspended     = $user->enrol_status == 1;
             $interval = new \DateInterval('PT' . $config['recertifyduration'] . 'S');
 

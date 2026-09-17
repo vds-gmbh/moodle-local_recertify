@@ -2,6 +2,17 @@ Release notes
 -------------
 
 Date          Version   Comment
+2026/09/17    1.3.1     Fix participants being reported as overdue while the last day of
+                        their validity was still running. The report shows the validity
+                        as a date ("Gültig bis 17.09.2026"), which reads as inclusive of
+                        that day, but the reset fired on the exact expiry timestamp, so
+                        anyone whose expiry fell earlier that day flipped to "Überfällig
+                        seit 1 Tagen" on a day the report itself called valid. Validity
+                        now ends at the end of that day.
+                        Fix the validity date being formatted in UTC instead of the server
+                        timezone. DateTime ignores a timezone passed alongside a
+                        '@timestamp', so completions between midnight and the UTC offset
+                        were shown with a date one day too early.
 2026/08/24    1.3.0     Fix activities never completing again after a reset. The reset
                         deleted course_modules_completion but left course_modules_viewed
                         behind; completion_info::set_module_viewed() returns early while
