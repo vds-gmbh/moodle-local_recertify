@@ -22,6 +22,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
+require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/local/recertify/locallib.php');
 
 /**
