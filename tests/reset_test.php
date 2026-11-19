@@ -32,6 +32,7 @@ require_once($CFG->dirroot . '/local/recertify/locallib.php');
  * @copyright  2026 onwards VdS Schadenverhütung
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \local_recertify\task\check_recertify
+ * @covers     \local_recertify\local\noemail
  */
 final class reset_test extends \advanced_testcase {
     /** @var \stdClass Course used by the test. */
@@ -291,5 +292,79 @@ final class reset_test extends \advanced_testcase {
             'coursemoduleid' => $cm->id,
             'userid' => $this->student->id,
         ]));
+    }
+
+    /**
+     * Flag the test student in the configured no-email profile field.
+     *
+     * @param string $value Value stored in the checkbox field.
+     */
+    private function flag_student_without_email(string $value = '1'): void {
+        global $DB;
+
+        $field = $this->getDataGenerator()->create_custom_profile_field([
+            'datatype' => 'checkbox',
+            'shortname' => 'noemail',
+            'name' => 'No email',
+        ]);
+        set_config('noemailprofilefield', 'noemail', 'local_recertify');
+
+        $DB->insert_record('user_info_data', (object) [
+            'userid' => $this->student->id,
+            'fieldid' => $field->id,
+            'data' => $value,
+        ]);
+    }
+
+    /**
+     * Reset the student with the reset mail switched on and return the mails that were sent.
+     *
+     * @return \stdClass[]
+     */
+    private function reset_student_and_collect_mails(): array {
+        $sink = $this->redirectEmails();
+        $this->reset_student(['recertifyemailenable' => 1, 'recertifyemailsubject' => '', 'recertifyemailbody' => '']);
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        return $messages;
+    }
+
+    /**
+     * A user with a regular address is told about the reset.
+     */
+    public function test_reset_mails_user_with_email(): void {
+        $messages = $this->reset_student_and_collect_mails();
+
+        $this->assertCount(1, $messages);
+        $this->assertEquals($this->student->email, $messages[0]->to);
+    }
+
+    /**
+     * A user flagged as having no real address must not be mailed, the address is made up.
+     */
+    public function test_reset_does_not_mail_user_without_email(): void {
+        $this->flag_student_without_email();
+
+        $this->assertCount(0, $this->reset_student_and_collect_mails());
+    }
+
+    /**
+     * An unticked checkbox stores '0', which does not count as a flag.
+     */
+    public function test_reset_mails_user_with_unticked_flag(): void {
+        $this->flag_student_without_email('0');
+
+        $this->assertCount(1, $this->reset_student_and_collect_mails());
+    }
+
+    /**
+     * Without a configured profile field nobody is treated as having no email.
+     */
+    public function test_flag_is_ignored_without_configured_field(): void {
+        $this->flag_student_without_email();
+        set_config('noemailprofilefield', '', 'local_recertify');
+
+        $this->assertCount(1, $this->reset_student_and_collect_mails());
     }
 }

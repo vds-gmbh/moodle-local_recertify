@@ -37,9 +37,6 @@ class supervisor_notification extends \core\task\scheduled_task {
     /** @var array<int, string> Plaintext passwords generated during the current run, keyed by user id. */
     private $newpasswords = [];
 
-    /** @var int|null Cached id of the configured "no email" custom user profile field. */
-    private $noemailfieldid = null;
-
     /**
      * Generate a random password with specified character sets.
      *
@@ -124,7 +121,6 @@ class supervisor_notification extends \core\task\scheduled_task {
         // Reset per-run state so password resets are de-duplicated across all
         // supervisors and courses processed in this run.
         $this->newpasswords = [];
-        $this->noemailfieldid = $this->resolve_noemail_fieldid();
 
         try {
             $coursessql = "SELECT c.id
@@ -323,7 +319,7 @@ HTML;
                 $colclassname = 'text-success';
             }
 
-            $email = $this->user_has_no_email($user->id) ? null : $user->email;
+            $email = \local_recertify\local\noemail::user_has_no_email($user->id) ? null : $user->email;
 
             if (!$timecompleted && $email) {
                 $overdueusers[] = $user;
@@ -489,43 +485,6 @@ HTML;
         } catch (\Exception $error) {
             debugging('Notification to user failed: ' . $error->getMessage(), DEBUG_DEVELOPER);
         }
-    }
-
-    /**
-     * Resolve the configured no-email custom profile field to its database id.
-     *
-     * @return int|null Field id or null if the setting is empty or the field does not exist.
-     */
-    private function resolve_noemail_fieldid(): ?int {
-        global $DB;
-        $shortname = get_config('local_recertify', 'noemailprofilefield');
-        if (empty($shortname)) {
-            return null;
-        }
-        $id = $DB->get_field('user_info_field', 'id', ['shortname' => $shortname]);
-        return $id ? (int) $id : null;
-    }
-
-    /**
-     * Decide whether a user is flagged as having no real email address.
-     *
-     * Uses the custom user profile field configured under
-     * local_recertify/noemailprofilefield. A non-empty, non-zero value is
-     * treated as "no email".
-     *
-     * @param int $userid User id.
-     * @return bool
-     */
-    private function user_has_no_email(int $userid): bool {
-        global $DB;
-        if ($this->noemailfieldid === null) {
-            return false;
-        }
-        $value = $DB->get_field('user_info_data', 'data', [
-            'userid' => $userid,
-            'fieldid' => $this->noemailfieldid,
-        ]);
-        return $value !== false && $value !== '' && $value !== '0';
     }
 
     /**

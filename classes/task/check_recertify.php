@@ -244,6 +244,11 @@ class check_recertify extends \core\task\scheduled_task {
             return;
         }
 
+        // The address of a flagged user is made up, see \local_recertify\local\noemail.
+        if (\local_recertify\local\noemail::user_has_no_email((int) $userid)) {
+            return;
+        }
+
         $userrecord = $DB->get_record('user', ['id' => $userid]);
         $context = \context_course::instance($course->id);
 
